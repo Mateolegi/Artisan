@@ -23,20 +23,22 @@
  */
 package io.github.mateolegi.Artisan.views;
 
-import javax.swing.plaf.basic.BasicInternalFrameUI;
-
 /**
  *
  * @author mateo
  */
-public class Panel extends javax.swing.JInternalFrame {
+public class MainWindow extends javax.swing.JFrame {
 
-    /**
-     * Creates new form Panel
-     */
-    public Panel() {
+    Window window = new Window();
+    
+    public MainWindow() {
         initComponents();
-        ((BasicInternalFrameUI) this.getUI()).setNorthPane(null);
+        setIconImage(new javax.swing.ImageIcon(getClass()
+            .getResource("/io/github/mateolegi/Artisan/images/Artisan.png"))
+            .getImage().getScaledInstance(48, 48, java.awt.Image.SCALE_AREA_AVERAGING));
+        setLocationRelativeTo(null);
+        window.show();
+        canvas.add(window);
     }
 
     /**
@@ -48,23 +50,46 @@ public class Panel extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setPreferredSize(new java.awt.Dimension(250, 662));
+        canvas = new javax.swing.JDesktopPane();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Artisan");
+        setUndecorated(true);
+        setPreferredSize(new java.awt.Dimension(960, 660));
+        setResizable(false);
+
+        canvas.setPreferredSize(new java.awt.Dimension(960, 660));
+
+        javax.swing.GroupLayout canvasLayout = new javax.swing.GroupLayout(canvas);
+        canvas.setLayout(canvasLayout);
+        canvasLayout.setHorizontalGroup(
+            canvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 962, Short.MAX_VALUE)
+        );
+        canvasLayout.setVerticalGroup(
+            canvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 662, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 234, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(canvas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 570, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(canvas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JDesktopPane canvas;
     // End of variables declaration//GEN-END:variables
 }

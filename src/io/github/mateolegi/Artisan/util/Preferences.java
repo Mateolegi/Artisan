@@ -1,3 +1,26 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2017 mateo.leal.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package io.github.mateolegi.Artisan.util;
 
 import java.io.File;
@@ -35,7 +58,7 @@ public class Preferences {
             docFactory = DocumentBuilderFactory.newInstance();
             docBuilder = docFactory.newDocumentBuilder();
         } catch (ParserConfigurationException ex) {
-            Logger.getLogger(xml.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Preferences.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -50,7 +73,7 @@ public class Preferences {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File("file.xml"));
+            StreamResult result = new StreamResult(new File("config.xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
@@ -64,7 +87,7 @@ public class Preferences {
     public void saveProp(String father, String title, String value) {
 
         try {
-            File file = new File("file.xml");
+            File file = new File("config.xml");
             doc = docBuilder.parse(file);
             doc.getDocumentElement().normalize();
 
@@ -85,7 +108,7 @@ public class Preferences {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File("file.xml"));
+            StreamResult result = new StreamResult(new File("config.xml"));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
@@ -93,7 +116,7 @@ public class Preferences {
             System.out.println("File saved");
 
         } catch (SAXException | TransformerException ex) {
-            Logger.getLogger(xml.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Preferences.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             System.out.println("El archivo no existe, se creará. " + ex.getMessage());
             createFile();
@@ -107,7 +130,7 @@ public class Preferences {
         String value = "";
 
         try {
-            File file = new File("file.xml");
+            File file = new File("config.xml");
             doc = docBuilder.parse(file);
             doc.getDocumentElement().normalize();
             NodeList nList = doc.getElementsByTagName(nodeName);
