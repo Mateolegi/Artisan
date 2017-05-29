@@ -192,6 +192,8 @@ public class NewProject extends javax.swing.JInternalFrame {
                         }
                         LeftPanel leftPanel = new LeftPanel();
                         leftPanel.show();
+                        topFrame.getProjects();
+                        topFrame.selectedProject.setText("  " + projectName);
                         topFrame.canvas.add(leftPanel);
                         this.dispose();
                     } else {
@@ -240,6 +242,8 @@ public class NewProject extends javax.swing.JInternalFrame {
                     }
                     LeftPanel leftPanel = new LeftPanel();
                     leftPanel.show();
+                    topFrame.getProjects();
+                    topFrame.selectedProject.setText("  " + projectName);
                     topFrame.canvas.add(leftPanel);
                     this.dispose();
                 } else {

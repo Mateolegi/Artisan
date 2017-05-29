@@ -25,6 +25,7 @@ package io.github.mateolegi.Artisan.views;
 
 import io.github.mateolegi.Artisan.util.Preferences;
 import io.github.mateolegi.Artisan.util.Terminal;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -205,8 +206,18 @@ public class FirstTime extends javax.swing.JFrame {
 
             phpPathText.setText("php");
             phpPathText.setPreferredSize(new java.awt.Dimension(26, 20));
+            phpPathText.addKeyListener(new java.awt.event.KeyAdapter() {
+                public void keyPressed(java.awt.event.KeyEvent evt) {
+                    phpPathTextKeyPressed(evt);
+                }
+            });
 
             composerPathText.setText("composer");
+            composerPathText.addKeyListener(new java.awt.event.KeyAdapter() {
+                public void keyPressed(java.awt.event.KeyEvent evt) {
+                    composerPathTextKeyPressed(evt);
+                }
+            });
 
             phpPathLabel.setText("PHP path");
 
@@ -407,6 +418,18 @@ public class FirstTime extends javax.swing.JFrame {
             confirmButton.setEnabled(true);
         }
     }//GEN-LAST:event_confirmButtonActionPerformed
+
+    private void phpPathTextKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_phpPathTextKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            confirmButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_phpPathTextKeyPressed
+
+    private void composerPathTextKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_composerPathTextKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            confirmButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_composerPathTextKeyPressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea checkingLabel;
