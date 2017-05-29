@@ -23,22 +23,52 @@
  */
 package io.github.mateolegi.Artisan.views;
 
+import io.github.mateolegi.Artisan.models.Project;
+import io.github.mateolegi.Artisan.util.Notification;
+import io.github.mateolegi.Artisan.util.Preferences;
+import java.awt.AWTException;
+import java.net.MalformedURLException;
+import java.util.LinkedList;
+
 /**
  *
  * @author mateo
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    Window window = new Window();
-    
+    Preferences pref = new Preferences();
+    Notification noti = new Notification();
+    LeftPanel leftPanel = new LeftPanel();
+    int xMouse, yMouse;
+
     public MainWindow() {
+        this.setIconImage(new javax.swing.ImageIcon(getClass()
+                .getResource("/io/github/mateolegi/Artisan/images/Artisan.png"))
+                .getImage().getScaledInstance(48, 48, java.awt.Image.SCALE_AREA_AVERAGING));
         initComponents();
-        setIconImage(new javax.swing.ImageIcon(getClass()
-            .getResource("/io/github/mateolegi/Artisan/images/Artisan.png"))
-            .getImage().getScaledInstance(48, 48, java.awt.Image.SCALE_AREA_AVERAGING));
-        setLocationRelativeTo(null);
-        window.show();
-        canvas.add(window);
+        this.setLocationRelativeTo(null);
+        leftPanel.show();
+        canvas.add(leftPanel);
+        try {
+            noti.displayTray("Todo correcto", "INFO");
+        } catch (AWTException | MalformedURLException ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
+        getProjects();
+    }
+    
+    private void getProjects() {
+        LinkedList<Project> projects = pref.getProjects();
+        if (projects.isEmpty()) {
+            System.out.println("No hay proyectos");
+            NewProject newProject = new NewProject();
+            canvas.removeAll();
+            newProject.show();
+            newProject.backButton.setVisible(false);
+            canvas.add(newProject);
+        } else {
+            System.out.println("Hay proyectos");
+        }
     }
 
     /**
@@ -50,46 +80,167 @@ public class MainWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        topBar = new javax.swing.JPanel();
+        closeButton = new javax.swing.JButton();
+        minimizeButton = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JSeparator();
         canvas = new javax.swing.JDesktopPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Artisan");
         setUndecorated(true);
-        setPreferredSize(new java.awt.Dimension(960, 660));
         setResizable(false);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        canvas.setPreferredSize(new java.awt.Dimension(960, 660));
+        topBar.setBackground(new java.awt.Color(149, 165, 166));
+        topBar.setPreferredSize(new java.awt.Dimension(960, 80));
+        topBar.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                topBarMouseDragged(evt);
+            }
+        });
+        topBar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                topBarMousePressed(evt);
+            }
+        });
+        topBar.setLayout(null);
+
+        closeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/close.png"))); // NOI18N
+        closeButton.setBorder(null);
+        closeButton.setBorderPainted(false);
+        closeButton.setContentAreaFilled(false);
+        closeButton.setFocusable(false);
+        closeButton.setPreferredSize(new java.awt.Dimension(45, 30));
+        closeButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                closeButtonMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                closeButtonMouseExited(evt);
+            }
+        });
+        closeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeButtonActionPerformed(evt);
+            }
+        });
+        topBar.add(closeButton);
+        closeButton.setBounds(915, 0, 45, 30);
+
+        minimizeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/minimize.png"))); // NOI18N
+        minimizeButton.setBorder(null);
+        minimizeButton.setBorderPainted(false);
+        minimizeButton.setContentAreaFilled(false);
+        minimizeButton.setFocusable(false);
+        minimizeButton.setPreferredSize(new java.awt.Dimension(45, 30));
+        minimizeButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                minimizeButtonMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                minimizeButtonMouseExited(evt);
+            }
+        });
+        minimizeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                minimizeButtonActionPerformed(evt);
+            }
+        });
+        topBar.add(minimizeButton);
+        minimizeButton.setBounds(870, 0, 45, 30);
+
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/Artisan.png"))); // NOI18N
+        topBar.add(jLabel1);
+        jLabel1.setBounds(260, 10, 90, 60);
+
+        jButton1.setText("Project");
+        jButton1.setBorder(null);
+        jButton1.setBorderPainted(false);
+        jButton1.setContentAreaFilled(false);
+        jButton1.setFocusable(false);
+        jButton1.setOpaque(false);
+        jButton1.setPreferredSize(new java.awt.Dimension(250, 23));
+        topBar.add(jButton1);
+        jButton1.setBounds(0, 0, 250, 80);
+
+        jSeparator1.setBackground(new java.awt.Color(127, 140, 141));
+        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        topBar.add(jSeparator1);
+        jSeparator1.setBounds(250, 0, 10, 80);
+
+        getContentPane().add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        canvas.setBackground(new java.awt.Color(236, 240, 241));
+        canvas.setPreferredSize(new java.awt.Dimension(960, 580));
 
         javax.swing.GroupLayout canvasLayout = new javax.swing.GroupLayout(canvas);
         canvas.setLayout(canvasLayout);
         canvasLayout.setHorizontalGroup(
             canvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 962, Short.MAX_VALUE)
+            .addGap(0, 960, Short.MAX_VALUE)
         );
         canvasLayout.setVerticalGroup(
             canvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 662, Short.MAX_VALUE)
+            .addGap(0, 580, Short.MAX_VALUE)
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(canvas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(canvas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
+        getContentPane().add(canvas, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 80, -1, 580));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void closeButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_closeButtonMouseEntered
+        closeButton.setOpaque(true);
+        closeButton.setBorderPainted(true);
+        closeButton.setBackground(new java.awt.Color(231, 76, 60));
+    }//GEN-LAST:event_closeButtonMouseEntered
+
+    private void closeButtonMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_closeButtonMouseExited
+        closeButton.setOpaque(false);
+        closeButton.setBorderPainted(false);
+    }//GEN-LAST:event_closeButtonMouseExited
+
+    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_closeButtonActionPerformed
+
+    private void minimizeButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizeButtonMouseEntered
+        minimizeButton.setOpaque(true);
+        minimizeButton.setBorderPainted(true);
+        minimizeButton.setBackground(new java.awt.Color(189, 195, 199));
+    }//GEN-LAST:event_minimizeButtonMouseEntered
+
+    private void minimizeButtonMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizeButtonMouseExited
+        minimizeButton.setOpaque(false);
+        minimizeButton.setBorderPainted(false);
+    }//GEN-LAST:event_minimizeButtonMouseExited
+
+    private void minimizeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_minimizeButtonActionPerformed
+        this.setState(MainWindow.ICONIFIED);
+    }//GEN-LAST:event_minimizeButtonActionPerformed
+
+    private void topBarMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_topBarMouseDragged
+        int x = evt.getXOnScreen();
+        int y = evt.getYOnScreen();
+        
+        setLocation(x - xMouse, y - yMouse);
+    }//GEN-LAST:event_topBarMouseDragged
+
+    private void topBarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_topBarMousePressed
+        xMouse = evt.getX();
+        yMouse = evt.getY();
+    }//GEN-LAST:event_topBarMousePressed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JDesktopPane canvas;
+    public javax.swing.JDesktopPane canvas;
+    private javax.swing.JButton closeButton;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JButton minimizeButton;
+    private javax.swing.JPanel topBar;
     // End of variables declaration//GEN-END:variables
 }

@@ -29,12 +29,12 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
  *
  * @author mateo
  */
-public class Panel extends javax.swing.JInternalFrame {
+public class LeftPanel extends javax.swing.JInternalFrame {
 
     /**
-     * Creates new form Panel
+     * Creates new form LeftPanel
      */
-    public Panel() {
+    public LeftPanel() {
         initComponents();
         ((BasicInternalFrameUI) this.getUI()).setNorthPane(null);
     }
@@ -48,17 +48,19 @@ public class Panel extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setPreferredSize(new java.awt.Dimension(250, 662));
+        setBackground(new java.awt.Color(189, 195, 199));
+        setBorder(null);
+        setPreferredSize(new java.awt.Dimension(250, 580));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 234, Short.MAX_VALUE)
+            .addGap(0, 250, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 570, Short.MAX_VALUE)
+            .addGap(0, 553, Short.MAX_VALUE)
         );
 
         pack();

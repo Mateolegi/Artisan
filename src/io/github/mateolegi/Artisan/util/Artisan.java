@@ -33,11 +33,13 @@ public class Artisan {
     
     final static String PHPPATH = getPHPPath();
     final static String COMPOSERPATH = getComposerPath();
-
-    public static final String NEWAPP             = COMPOSERPATH + " create-project --prefer-dist laravel/laravel ";
+    
+    public static final String INSTALLLARAVEL[]   = {COMPOSERPATH, "global", "require", "\"laravel/installer\""};
+    public static final String COMPOSERVERSION[]  = {COMPOSERPATH, "-V"};
+    public static final String NEWAPP             = "laravel new ";
     public static final String CUSTOMPORT         = " --port=";
-    public static final String PHPVERSION         = PHPPATH + " -v";
-    public static final String PHPMODULES         = PHPPATH + " -m";
+    public static final String PHPVERSION[]       = {PHPPATH, "-v"};
+    public static final String PHPMODULES[]       = {PHPPATH, "-m"};
     public static final String CLEARCOMPILED      = PHPPATH + " artisan clear-compiled ";
     public static final String ENV                = PHPPATH + " artisan env ";
     public static final String DOWN               = PHPPATH + " artisan down ";
@@ -74,23 +76,16 @@ public class Artisan {
     public static final String MAKESEEDER         = PHPPATH + " artisan make:seeder ";
     public static final String MAKETEST           = PHPPATH + " artisan make:test ";
     
+    public static boolean fileExists(){
+        return pref.fileExists();
+    }
 
     static String getPHPPath(){
-        String PHP = pref.getProp("configurations", "php-path");
-        if (PHP.equals("")) {
-            PHP = "php";
-            pref.saveProp("configurations", "php-path", PHP);
-        }
-        return PHP;
+        return pref.getProp("configurations", "php-path");
     }
     
     static String getComposerPath(){
-        String composer = pref.getProp("configurations", "composer-path");
-        if (composer.equals("")) {
-            composer = "composer";
-            pref.saveProp("configurations", "composer-path", composer);
-        }
-        return composer;
+        return pref.getProp("configurations", "composer-path");
     }
     
 }

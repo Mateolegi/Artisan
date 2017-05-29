@@ -25,13 +25,15 @@ package io.github.mateolegi.Artisan.controllers;
 
 import io.github.mateolegi.Artisan.util.Artisan;
 import io.github.mateolegi.Artisan.util.Preferences;
+import io.github.mateolegi.Artisan.views.FirstTime;
 import io.github.mateolegi.Artisan.views.MainWindow;
+import java.awt.EventQueue;
+import java.awt.HeadlessException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -44,23 +46,19 @@ public class Main {
 
     Preferences pref = new Preferences();
 
-    static boolean checkPHP() {
-        try {
-            final Process p = Runtime.getRuntime().exec(Artisan.PHPVERSION);
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = input.readLine();
-            String[] phpBuild = line.split(" ");
-            String version = phpBuild[1];
-            float ver = Float.parseFloat(version.substring(0, 2));
-            if (ver >= 5.6) {
-                return true;
-            } else {
-                JOptionPane.showMessageDialog(null, "Parece que no tienes PHP instalado o no está añadido al PATH", "PHP no encontrado", JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
+    static boolean checkPHP() throws HeadlessException, IOException, NumberFormatException {
 
-        } catch (IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
+        final Process p = Runtime.getRuntime().exec(Artisan.PHPVERSION);
+        BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        String line = input.readLine();
+        String[] phpBuild = line.split(" ");
+        String version = phpBuild[1];
+        System.out.println(version);
+        float ver = Float.parseFloat(version.substring(0, 2));
+        if (ver >= 5.6) {
+            return true;
+        } else {
+            JOptionPane.showMessageDialog(null, "A version greater than 5.6.4 is required", "Update PHP", JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }
@@ -113,44 +111,50 @@ public class Main {
         return false;
     }
 
+    static boolean checkComposer() throws IOException {
+        final Process p = Runtime.getRuntime().exec(Artisan.COMPOSERVERSION);
+        BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        String line = input.readLine();
+        String[] composerBuild = line.split(" ");
+        System.out.println(composerBuild[2]);
+        return true;
+
+    }
+
     public static void main(String args[]) throws IOException, InterruptedException {
-        if (checkPHP()) {
-            if (getPHPModules()) {
-                String VOS = System.getProperty("os.name");
-                String OS[] = VOS.split(" ");
-                System.out.println(OS[0] + " detected");
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-                if (null != OS[0]) {
-                    switch (OS[0]) {
-                        case "Windows":
-                            try {
-                                JFrame.setDefaultLookAndFeelDecorated(true);
-                                JDialog.setDefaultLookAndFeelDecorated(true);
-                                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-                            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-                            }
-                            break;
-                        case "Linux":
-                            try {
-                                JFrame.setDefaultLookAndFeelDecorated(true);
-                                JDialog.setDefaultLookAndFeelDecorated(true);
-                                UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-                            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-                            }
-                            break;
-                        default:
-                            try {
-                                JFrame.setDefaultLookAndFeelDecorated(true);
-                                JDialog.setDefaultLookAndFeelDecorated(true);
-                                UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-                            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-                            }
-                            break;
+            File file = new File(Preferences.PATH);
+            if (file.exists() && !file.isDirectory()) {
+                try {
+                    if (checkPHP() && getPHPModules() && checkComposer()) {
+                        EventQueue.invokeLater(() -> {
+                            new MainWindow().setVisible(true);
+                        });
+                    } else {
+                        try {
+                            file.delete();
+                            EventQueue.invokeLater(() -> {
+                                new FirstTime().setVisible(true);
+                            });
+                        } catch (Exception e) {
+                        }
                     }
+                } catch (HeadlessException | IOException | NumberFormatException e) {
+                    file.delete();
+                    EventQueue.invokeLater(() -> {
+                        new FirstTime().setVisible(true);
+                    });
                 }
-                new MainWindow().setVisible(true);
+            } else {
+                EventQueue.invokeLater(() -> {
+                    new FirstTime().setVisible(true);
+                });
             }
-        }
 
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
     }
 }

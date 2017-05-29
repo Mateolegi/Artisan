@@ -23,10 +23,10 @@
  */
 package io.github.mateolegi.Artisan.util;
 
+import io.github.mateolegi.Artisan.models.Project;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.LinkedList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,6 +35,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -52,13 +53,14 @@ public class Preferences {
     DocumentBuilder docBuilder;
     Document doc;
     Element root;
+    public static final String PATH = "config.xml";
 
     public Preferences() {
         try {
             docFactory = DocumentBuilderFactory.newInstance();
             docBuilder = docFactory.newDocumentBuilder();
         } catch (ParserConfigurationException ex) {
-            Logger.getLogger(Preferences.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Error: " + ex.getMessage());
         }
     }
 
@@ -67,18 +69,21 @@ public class Preferences {
 
             doc = docBuilder.newDocument();
             root = doc.createElement("properties");
-
             doc.appendChild(root);
+
+            Element configurations = doc.createElement("configurations");
+            Element projects = doc.createElement("projects");
+            root.appendChild(configurations);
+            root.appendChild(projects);
 
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File("config.xml"));
+            StreamResult result = new StreamResult(new File(PATH));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
             transformer.transform(source, result);
-
         } catch (DOMException | TransformerException ex) {
             System.out.println("error" + ex.getMessage());
         }
@@ -87,7 +92,7 @@ public class Preferences {
     public void saveProp(String father, String title, String value) {
 
         try {
-            File file = new File("config.xml");
+            File file = new File(PATH);
             doc = docBuilder.parse(file);
             doc.getDocumentElement().normalize();
 
@@ -108,40 +113,102 @@ public class Preferences {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File("config.xml"));
+            StreamResult result = new StreamResult(new File(PATH));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
             transformer.transform(source, result);
-            System.out.println("File saved");
 
         } catch (SAXException | TransformerException ex) {
-            Logger.getLogger(Preferences.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Error: " + ex.getMessage());
         } catch (IOException ex) {
-            System.out.println("El archivo no existe, se creará. " + ex.getMessage());
+            System.out.println("File does not exist, will be created. " + ex.getMessage());
             createFile();
             saveProp(father, title, value);
         }
-
     }
 
     public String getProp(String nodeName, String title) {
 
         String value = "";
-
         try {
-            File file = new File("config.xml");
+            File file = new File(PATH);
             doc = docBuilder.parse(file);
             doc.getDocumentElement().normalize();
             NodeList nList = doc.getElementsByTagName(nodeName);
             Element element = (Element) nList.item(0);
             value = element.getElementsByTagName(title).item(0).getTextContent();
-
-        } catch (IOException | DOMException | SAXException e) {
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             return "";
         }
-
         return value;
+    }
+
+    public boolean fileExists() {
+        File file = new File(PATH);
+        return file.exists() && !file.isDirectory();
+    }
+
+    public boolean saveProject(Project project) {
+        try {
+
+            File file = new File(PATH);
+            doc = docBuilder.parse(file);
+            doc.getDocumentElement().normalize();
+
+            NodeList projects = doc.getElementsByTagName("projects");
+            Element projectsNode = (Element) projects.item(0);
+
+            Element newProject = doc.createElement("project");
+            projectsNode.appendChild(newProject);
+
+            Attr name = doc.createAttribute("name");
+            name.setValue(project.getName());
+            newProject.setAttribute("name", project.getName());
+
+            Element projectPath = doc.createElement("path");
+            projectPath.appendChild(doc.createTextNode(project.getPath()));
+            newProject.appendChild(projectPath);
+
+            // write the content into xml file
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File(PATH));
+
+            // Output to console for testing
+            // StreamResult result = new StreamResult(System.out);
+            transformer.transform(source, result);
+            return true;
+            
+        } catch (IOException | TransformerException | DOMException | SAXException e) {
+            System.out.println("Error: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    public LinkedList<Project> getProjects() {
+        LinkedList<Project> projects = new LinkedList<>();
+        
+        try {
+            File file = new File(PATH);
+            doc = docBuilder.parse(file);
+            doc.getDocumentElement().normalize();
+            
+            NodeList nList = doc.getElementsByTagName("project");
+            
+            for (int i = 0; i < nList.getLength(); i++) {
+                Node node = nList.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element elem = (Element) node;
+                    projects.add(new Project(elem.getAttribute("name"), elem.getElementsByTagName("path").item(0).getTextContent()));
+                }
+            }
+            
+        } catch (IOException | DOMException | SAXException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        
+        return projects;
     }
 }

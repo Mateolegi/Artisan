@@ -62,14 +62,14 @@ public class Notification {
             SystemTray tray = SystemTray.getSystemTray();
 
             //If the icon is a file
-            Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+            //Image image = Toolkit.getDefaultToolkit().createImage("/io/github/mateolegi/Artisan/images/Artisan.png");
             //Alternative (if the icon is on the classpath):
-            //Image image = Toolkit.getToolkit().createImage(getClass().getResource("icon.png"));
-            TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
+            Image image = Toolkit.getDefaultToolkit().createImage(getClass().getResource("/io/github/mateolegi/Artisan/images/Artisan.png"));
+            TrayIcon trayIcon = new TrayIcon(image, "Artisan");
             //Let the system resizes the image if needed
             trayIcon.setImageAutoSize(true);
             //Set tooltip text for the tray icon
-            trayIcon.setToolTip("System tray icon demo");
+            trayIcon.setToolTip("Artisan");
             tray.add(trayIcon);
             trayIcon.displayMessage("Artisan", text, messageType);
         }
