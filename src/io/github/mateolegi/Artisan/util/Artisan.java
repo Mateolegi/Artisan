@@ -35,12 +35,12 @@ public class Artisan {
     final static String COMPOSERPATH = getComposerPath();
     
     public static final String INSTALLLARAVEL[]   = {COMPOSERPATH, "global", "require", "\"laravel/installer\""};
-    public static final String COMPOSERVERSION[]  = {COMPOSERPATH, "-V"};
-    public static final String NEWAPP             = "laravel new ";
+    public static final String COMPOSERVERSION[]  = {PHPPATH, COMPOSERPATH, "-V"};
+    public static final String NEWAPP             = PHPPATH + COMPOSERPATH + " create-project --prefer-dist laravel/laravel ";
     public static final String CUSTOMPORT         = " --port=";
     public static final String PHPVERSION[]       = {PHPPATH, "-v"};
     public static final String PHPMODULES[]       = {PHPPATH, "-m"};
-    public static final String CLEARCOMPILED      = PHPPATH + " artisan clear-compiled ";
+    public static final String CLEARCOMPILED[]    = {PHPPATH, "artisan", "clear-compiled"};
     public static final String ENV                = PHPPATH + " artisan env ";
     public static final String DOWN               = PHPPATH + " artisan down ";
     public static final String HELP               = PHPPATH + " artisan help ";

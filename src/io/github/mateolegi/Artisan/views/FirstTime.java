@@ -25,14 +25,18 @@ package io.github.mateolegi.Artisan.views;
 
 import io.github.mateolegi.Artisan.util.Preferences;
 import io.github.mateolegi.Artisan.util.Terminal;
+import java.awt.Cursor;
+import java.awt.EventQueue;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.LinkedList;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
 
 /**
@@ -50,16 +54,13 @@ public class FirstTime extends javax.swing.JFrame {
                 .getResource("/io/github/mateolegi/Artisan/images/Artisan.png"))
                 .getImage().getScaledInstance(48, 48, java.awt.Image.SCALE_AREA_AVERAGING));
         setLocationRelativeTo(null);
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            composerPathText.setText("composer.bat");
-        }
         DefaultCaret caret = (DefaultCaret) checkingLabel.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        check();
+        //check();
     }
 
-    private boolean check() {
-        if (checkPHP() && checkPHPModules() && checkComposer()) {
+    private boolean check(String php, String composer) {
+        if (checkPHP(php) && checkPHPModules(php) && checkComposer(php, composer)) {
             checkingLabel.append("Status: successful");
             return true;
         } else {
@@ -68,10 +69,10 @@ public class FirstTime extends javax.swing.JFrame {
         }
     }
 
-    private boolean checkPHP() {
+    private boolean checkPHP(String php) {
         boolean flag;
         try {
-            ProcessBuilder pb = new ProcessBuilder(phpPathText.getText(), "-v");
+            ProcessBuilder pb = new ProcessBuilder(php, "-v");
             Process p = pb.start();
             InputStream output = p.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(output));
@@ -94,12 +95,12 @@ public class FirstTime extends javax.swing.JFrame {
         return flag;
     }
 
-    private boolean checkPHPModules() {
+    private boolean checkPHPModules(String php) {
 
         try {
 
             LinkedList<String> modules = new LinkedList<>();
-            ProcessBuilder pb = new ProcessBuilder(phpPathText.getText(), "-m");
+            ProcessBuilder pb = new ProcessBuilder(php, "-m");
             Process p = pb.start();
             InputStream output = p.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(output));
@@ -140,9 +141,9 @@ public class FirstTime extends javax.swing.JFrame {
         }
     }
 
-    private boolean checkComposer() {
+    private boolean checkComposer(String php, String composer) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(composerPathText.getText(), "-V");
+            ProcessBuilder pb = new ProcessBuilder(composer, "-V");
             Process p = pb.start();
             InputStream output = p.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(output));
@@ -163,23 +164,8 @@ public class FirstTime extends javax.swing.JFrame {
         }
     }
 
-    private void installLaravel() {
-        try {
-            ProcessBuilder pb = new ProcessBuilder(composerPathText.getText(), "global", "require", "\"laravel/installer\"");
-            Process p = pb.start();
-            InputStream output = p.getInputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(output));
-            String line = in.readLine();
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-            }
-        } catch (IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
-        }
-    }
-
     private void installLocalComposer(String php) {
-        String[] installComposer = {
+        String[] installComposerWindows = {
             "@ECHO OFF",
             "REM Set Home folder as Composer Global Configuration Folder",
             "SET COMPOSER_HOME=%~dp0Home",
@@ -187,11 +173,11 @@ public class FirstTime extends javax.swing.JFrame {
             php + " -r \"readfile('https://getcomposer.org/installer');\" | " + php,
             "SET COMPOSER_BAT=%~dp0composer.bat",
             "if not exist \"%COMPOSER_BAT\" (",
-                "echo @ECHO OFF> \"%COMPOSER_BAT%\"",
-                "echo SET COMPOSER_HOME=%%~dp0Home>> \"%COMPOSER_BAT%\"",
-                "echo if not exist %%COMPOSER_HOME%% md \"%%COMPOSER_HOME%%\">> \"%COMPOSER_BAT%\"",
-                "echo " + php + " \"%%~dp0composer.phar\" %%*>> \"%COMPOSER_BAT%\"",
-                "echo EXIT /B %%ERRORLEVEL%%>> \"%COMPOSER_BAT%\"",
+            "echo @ECHO OFF> \"%COMPOSER_BAT%\"",
+            "echo SET COMPOSER_HOME=%%~dp0Home>> \"%COMPOSER_BAT%\"",
+            "echo if not exist %%COMPOSER_HOME%% md \"%%COMPOSER_HOME%%\">> \"%COMPOSER_BAT%\"",
+            "echo " + php + " \"%%~dp0composer.phar\" %%*>> \"%COMPOSER_BAT%\"",
+            "echo EXIT /B %%ERRORLEVEL%%>> \"%COMPOSER_BAT%\"",
             ")",
             "call composer --version | findstr /i /r /c:\"Composer......version\"",
             "REM Increases Composer Timeout",
@@ -202,26 +188,21 @@ public class FirstTime extends javax.swing.JFrame {
             "call composer --quiet config --global cache-dir \"%COMPOSER_LOCAL%\""
         };
         try {
-            //FIX ME
-            ProcessBuilder pb = new ProcessBuilder("cmd", "/c");
-            pb.directory(new File("C:\\Artisan\\Composer"));
-            Process p = pb.start();
-            InputStream input = p.getInputStream();
+            Process p;
+            ProcessBuilder pb;
             BufferedReader in;
             String line;
-            try (OutputStream out = p.getOutputStream()) {
-                in = new BufferedReader(new InputStreamReader(input));
-                for (int i = 0; i < 20; i++) {
-                    out.write(installComposer[i].getBytes());
-                    out.flush();
-                    while ((line = in.readLine()) != null) {
-                        System.out.println(line);
-                        checkingLabel.append(line + "\n");
-                    }
+            for (int i = 0; i < 20; i++) {
+                pb = new ProcessBuilder(Arrays.asList(new String[]{"cmd.exe", "/C", installComposerWindows[i]}));
+                pb.directory(new File("C:\\Artisan\\Composer"));
+                p = pb.start();
+                in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((line = in.readLine()) != null) {
+                    System.out.println(line);
+                    checkingLabel.append(line + "\n");
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
             System.out.println("Error: " + e.getMessage());
         }
     }
@@ -273,7 +254,7 @@ public class FirstTime extends javax.swing.JFrame {
                 }
             });
 
-            composerPathText.setText("composer");
+            composerPathText.setText("composer.phar");
             composerPathText.setEnabled(false);
             composerPathText.addKeyListener(new java.awt.event.KeyAdapter() {
                 public void keyPressed(java.awt.event.KeyEvent evt) {
@@ -523,49 +504,93 @@ public class FirstTime extends javax.swing.JFrame {
     }//GEN-LAST:event_confirmButtonMouseExited
 
     private void selectPHPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectPHPButtonActionPerformed
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Executable .exe", "exe"));
+        }
         fileChooser.showOpenDialog(this);
         File file = fileChooser.getSelectedFile();
+
         try {
             String path = file.getAbsolutePath();
             phpPathText.setText(path);
             checkingLabel.setText("");
-            check();
+            checkPHP(path);
+            checkPHPModules(path);
         } catch (Exception e) {
         }
     }//GEN-LAST:event_selectPHPButtonActionPerformed
 
     private void selectComposerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectComposerButtonActionPerformed
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PHAR File .phar", "phar"));
         fileChooser.showOpenDialog(this);
         File file = fileChooser.getSelectedFile();
         try {
             String path = file.getAbsolutePath();
             composerPathText.setText(path);
             checkingLabel.setText("");
-            check();
+            check(phpPathText.getText(), path);
         } catch (Exception e) {
         }
     }//GEN-LAST:event_selectComposerButtonActionPerformed
 
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
-//        confirmButton.setEnabled(false);
-//        if (yesPHPButton.isSelected()) {
-//            if (yesComposerButton.isSelected()) {
-//                if (check()) {
-//                    installLaravel();
-//                    pref.saveProp("configurations", "php-path", phpPathText.getText());
-//                    pref.saveProp("configurations", "composer-path", composerPathText.getText());
-//                    dispose();
-//                    EventQueue.invokeLater(() -> {
-//                        new MainWindow().setVisible(true);
-//                    });
-//                } else {
-//                    JOptionPane.showMessageDialog(null, "Status: error", "Error", JOptionPane.ERROR_MESSAGE);
-//                    confirmButton.setEnabled(true);
-//                }
-//            } else {
-        installLocalComposer(phpPathText.getText());
-//            }
-//        }
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        confirmButton.setEnabled(false);
+        if (yesPHPButton.isSelected()) {
+            if (yesComposerButton.isSelected()) {
+                if (check(phpPathText.getText(), composerPathText.getText())) {
+                    pref.saveProp("configurations", "php-path", phpPathText.getText());
+                    pref.saveProp("configurations", "composer-path", composerPathText.getText());
+                    dispose();
+                    EventQueue.invokeLater(() -> {
+                        new MainWindow().setVisible(true);
+                    });
+                } else {
+                    JOptionPane.showMessageDialog(null, "Status: error", "Error", JOptionPane.ERROR_MESSAGE);
+                    confirmButton.setEnabled(true);
+                    setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                }
+            } else {
+                if (checkPHP(phpPathText.getText()) && checkPHPModules(phpPathText.getText())) {
+                    installLocalComposer(phpPathText.getText());
+                    String composerPath = "C:\\Artisan\\Composer\\composer.phar";
+                    try {
+                        ProcessBuilder pb = new ProcessBuilder("cmd", "/c", phpPathText.getText(), composerPath, "-V");
+                        Process p = pb.start();
+                        String[] composerBuild = new BufferedReader(new InputStreamReader(p.getInputStream())).readLine().split(" ");
+                        try {
+                            Float.parseFloat(composerBuild[2].substring(0, 3));
+                            checkingLabel.append("Composer: version " + composerBuild[2] + "\n");
+                            pref.saveProp("configurations", "php-path", phpPathText.getText());
+                            pref.saveProp("configurations", "composer-path", composerPath);
+                            dispose();
+                            EventQueue.invokeLater(() -> {
+                                new MainWindow().setVisible(true);
+                            });
+                        } catch (NumberFormatException e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                    } catch (IOException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                }
+            }
+        } else {
+            System.out.println("It's here");
+            final String php = "C:\\Artisan\\php\\php.exe";
+            final String composer = "C:\\Artisan\\Composer\\composer.phar";
+            if (checkPHP("C:\\Artisan\\php\\php.exe") && checkPHPModules("C:\\Artisan\\php\\php.exe")) {
+                installLocalComposer(php);
+                pref.saveProp("configurations", "php-path", "C:\\Artisan\\php\\php.exe");
+                pref.saveProp("configurations", "composer-path", composer);
+                dispose();
+                EventQueue.invokeLater(() -> {
+                    new MainWindow().setVisible(true);
+                });
+            }
+        }
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        confirmButton.setEnabled(true);
     }//GEN-LAST:event_confirmButtonActionPerformed
 
     private void phpPathTextKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_phpPathTextKeyPressed
@@ -584,8 +609,9 @@ public class FirstTime extends javax.swing.JFrame {
         phpPathLabel.setEnabled(true);
         phpPathText.setEnabled(true);
         selectPHPButton.setEnabled(true);
-        checkPHP();
-        checkPHPModules();
+        if (checkPHP(phpPathText.getText())) {
+            checkPHPModules(phpPathText.getText());
+        }
         composerInstalledLabel.setEnabled(true);
         yesComposerButton.setEnabled(true);
         noComposerButton.setEnabled(true);
@@ -610,7 +636,7 @@ public class FirstTime extends javax.swing.JFrame {
         composerPathLabel.setEnabled(true);
         composerPathText.setEnabled(true);
         selectComposerButton.setEnabled(true);
-        check();
+        check(phpPathText.getText(), composerPathText.getText());
     }//GEN-LAST:event_yesComposerButtonActionPerformed
 
     private void noComposerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noComposerButtonActionPerformed

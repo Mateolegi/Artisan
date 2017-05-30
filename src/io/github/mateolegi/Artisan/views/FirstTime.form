@@ -150,7 +150,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="composerPathText">
       <Properties>
-        <Property name="text" type="java.lang.String" value="composer"/>
+        <Property name="text" type="java.lang.String" value="composer.phar"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
       <Events>

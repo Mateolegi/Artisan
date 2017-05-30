@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><properties>
-	<configurations>
-		<php-path>php</php-path>
-		<composer-path>C:\ProgramData\ComposerSetup\bin\composer.bat</composer-path>
-	</configurations>
-	<projects><project name="Myrmidon"><path>C:\Users\mateo\Code\Myrmidon</path></project></projects>
-</properties>

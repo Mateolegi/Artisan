@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.LinkedList;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -45,7 +46,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class Main {
 
     Preferences pref = new Preferences();
-    
+
     static boolean checkPHP() throws HeadlessException, IOException, NumberFormatException {
 
         final Process p = Runtime.getRuntime().exec(Artisan.PHPVERSION);
@@ -112,13 +113,20 @@ public class Main {
     }
 
     static boolean checkComposer() throws IOException {
-        final Process p = Runtime.getRuntime().exec(Artisan.COMPOSERVERSION);
+        ProcessBuilder pb = new ProcessBuilder(Arrays.asList(Artisan.COMPOSERVERSION));
+        pb.directory(new File("C:\\Artisan\\Composer"));
+        Process p = pb.start();
         BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
         String line = input.readLine();
         String[] composerBuild = line.split(" ");
-        System.out.println(composerBuild[2]);
-        return true;
-
+        try {
+            boolean flag = Float.parseFloat(composerBuild[2].substring(0, 3)) > 1.0;
+            System.out.println(composerBuild[2]);
+            return flag;
+        } catch (NumberFormatException e) {
+            System.out.println("Error: " + e.getMessage());
+            return false;
+        }
     }
 
     public static void main(String args[]) throws IOException, InterruptedException {
