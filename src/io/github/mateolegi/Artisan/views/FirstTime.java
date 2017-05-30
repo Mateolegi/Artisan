@@ -29,9 +29,11 @@ import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.LinkedList;
-import javax.swing.JOptionPane;
+import javax.swing.text.DefaultCaret;
 
 /**
  *
@@ -48,70 +50,62 @@ public class FirstTime extends javax.swing.JFrame {
                 .getResource("/io/github/mateolegi/Artisan/images/Artisan.png"))
                 .getImage().getScaledInstance(48, 48, java.awt.Image.SCALE_AREA_AVERAGING));
         setLocationRelativeTo(null);
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            composerPathText.setText("composer.bat");
+        }
+        DefaultCaret caret = (DefaultCaret) checkingLabel.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         check();
     }
 
     private boolean check() {
-        boolean flag;
-        String label;
-        if (checkPHP()) {
-            if (getPHPModules()) {
-                installLaravel();
-                flag = checkComposer();
-            } else {
-                flag = false;
-            }
+        if (checkPHP() && checkPHPModules() && checkComposer()) {
+            checkingLabel.append("Status: successful");
+            return true;
         } else {
-            flag = false;
+            checkingLabel.append("Status: error");
+            return false;
         }
-        label = checkingLabel.getText();
-        if (flag) {
-            label += "Status: successful";
-        } else {
-            label += "Status: error";
-        }
-        checkingLabel.setText(label);
-        return flag;
     }
 
     private boolean checkPHP() {
         boolean flag;
-        String label;
         try {
-            String[] arr = {phpPathText.getText(), "-v"};
-            final Process p = Runtime.getRuntime().exec(arr);
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = input.readLine();
-            String[] phpBuild = line.split(" ");
+            ProcessBuilder pb = new ProcessBuilder(phpPathText.getText(), "-v");
+            Process p = pb.start();
+            InputStream output = p.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(output));
+            String reading = in.readLine();
+            System.out.println(reading);
+            String[] phpBuild = reading.split(" ");
             String version = phpBuild[1];
-            label = "PHP: version " + version + "\n";
             float ver = Float.parseFloat(version.substring(0, 2));
+            checkingLabel.setText("PHP: version " + version + "\n");
             if (ver >= 5.6) {
                 flag = true;
             } else {
-                label += "PHP: A version greater than 5.6.4 is required\n";
+                checkingLabel.append("PHP: A version greater than 5.6.4 is required\n");
                 flag = false;
             }
-        } catch (IOException | NumberFormatException ex) {
-            label = "PHP: Could not find command\n";
+        } catch (NumberFormatException | IOException ex) {
+            checkingLabel.setText("PHP: Could not find command\n");
             flag = false;
         }
-        checkingLabel.setText(label);
         return flag;
     }
 
-    private boolean getPHPModules() {
+    private boolean checkPHPModules() {
 
         try {
-            
+
             LinkedList<String> modules = new LinkedList<>();
-            String[] arr = {phpPathText.getText(), "-m"};
-            final Process p = Runtime.getRuntime().exec(arr);
-            
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            ProcessBuilder pb = new ProcessBuilder(phpPathText.getText(), "-m");
+            Process p = pb.start();
+            InputStream output = p.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(output));
             String line;
             try {
-                while ((line = input.readLine()) != null) {
+                while ((line = in.readLine()) != null) {
                     modules.add(line);
                 }
                 String missingExtensions = "";
@@ -128,20 +122,18 @@ public class FirstTime extends javax.swing.JFrame {
                     missingExtensions += "tokenizer, ";
                 }
                 if (modules.indexOf("xml") == -1) {
-                    missingExtensions += "xml";
+                    missingExtensions += "xml ";
                 }
                 if (!missingExtensions.equals("")) {
-                    String label = checkingLabel.getText();
-                    label += "PHP: Extensons " + missingExtensions + " are not enabled\n";
-                    checkingLabel.setText(label);
+                    checkingLabel.append("PHP: Extensions " + missingExtensions + "are not enabled\n");
                     return false;
                 } else {
                     return true;
                 }
             } catch (IOException ex) {
                 System.out.println("Error: " + ex.getMessage());
+                return false;
             }
-            return false;
         } catch (IOException ex) {
             System.out.println("Error: " + ex.getMessage());
             return false;
@@ -149,27 +141,89 @@ public class FirstTime extends javax.swing.JFrame {
     }
 
     private boolean checkComposer() {
-        String label = checkingLabel.getText();
-        boolean flag;
         try {
-            String[] arr = {composerPathText.getText(), "-V"};
-            final Process p = Runtime.getRuntime().exec(arr);
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = input.readLine();
+            ProcessBuilder pb = new ProcessBuilder(composerPathText.getText(), "-V");
+            Process p = pb.start();
+            InputStream output = p.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(output));
+            String line = in.readLine();
+            System.out.println(line);
             String[] composerBuild = line.split(" ");
-            label += "Composer: version " + composerBuild[2] + "\n";
-            flag = true;
+            try {
+                boolean flag = Float.parseFloat(composerBuild[2].substring(0, 3)) > 1.0;
+                checkingLabel.append("Composer: version " + composerBuild[2] + "\n");
+                return flag;
+            } catch (NumberFormatException e) {
+                System.out.println("Error: " + e.getMessage());
+                return false;
+            }
         } catch (IOException | NullPointerException ex) {
-            label += "Composer: Could not find command\n";
-            flag = false;
+            checkingLabel.append("Composer: Could not find command\n");
+            return false;
         }
-        checkingLabel.setText(label);
-        return flag;
     }
 
     private void installLaravel() {
-        String[] command = {composerPathText.getText(), "global", "require", "\"laravel/installer\""};
-        terminal.executeCommand(command, checkingLabel);
+        try {
+            ProcessBuilder pb = new ProcessBuilder(composerPathText.getText(), "global", "require", "\"laravel/installer\"");
+            Process p = pb.start();
+            InputStream output = p.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(output));
+            String line = in.readLine();
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
+    }
+
+    private void installLocalComposer(String php) {
+        String[] installComposer = {
+            "@ECHO OFF",
+            "REM Set Home folder as Composer Global Configuration Folder",
+            "SET COMPOSER_HOME=%~dp0Home",
+            "if not exist %COMPOSER_HOME% md \"%COMPOSER_HOME%\"",
+            php + " -r \"readfile('https://getcomposer.org/installer');\" | " + php,
+            "SET COMPOSER_BAT=%~dp0composer.bat",
+            "if not exist \"%COMPOSER_BAT\" (",
+                "echo @ECHO OFF> \"%COMPOSER_BAT%\"",
+                "echo SET COMPOSER_HOME=%%~dp0Home>> \"%COMPOSER_BAT%\"",
+                "echo if not exist %%COMPOSER_HOME%% md \"%%COMPOSER_HOME%%\">> \"%COMPOSER_BAT%\"",
+                "echo " + php + " \"%%~dp0composer.phar\" %%*>> \"%COMPOSER_BAT%\"",
+                "echo EXIT /B %%ERRORLEVEL%%>> \"%COMPOSER_BAT%\"",
+            ")",
+            "call composer --version | findstr /i /r /c:\"Composer......version\"",
+            "REM Increases Composer Timeout",
+            "call composer --quiet config --global process-timeout 3000",
+            "REM Set Local folder for Composer Internal Cache",
+            "SET COMPOSER_LOCAL=%~dp0Local",
+            "if not exist %COMPOSER_LOCAL% md \"%COMPOSER_LOCAL%\"",
+            "call composer --quiet config --global cache-dir \"%COMPOSER_LOCAL%\""
+        };
+        try {
+            //FIX ME
+            ProcessBuilder pb = new ProcessBuilder("cmd", "/c");
+            pb.directory(new File("C:\\Artisan\\Composer"));
+            Process p = pb.start();
+            InputStream input = p.getInputStream();
+            BufferedReader in;
+            String line;
+            try (OutputStream out = p.getOutputStream()) {
+                in = new BufferedReader(new InputStreamReader(input));
+                for (int i = 0; i < 20; i++) {
+                    out.write(installComposer[i].getBytes());
+                    out.flush();
+                    while ((line = in.readLine()) != null) {
+                        System.out.println(line);
+                        checkingLabel.append(line + "\n");
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
     /**
@@ -182,7 +236,8 @@ public class FirstTime extends javax.swing.JFrame {
     private void initComponents() {
 
         fileChooser = new javax.swing.JFileChooser();
-        panel = new javax.swing.JPanel();
+        phpGroup = new javax.swing.ButtonGroup();
+        composerGroup = new javax.swing.ButtonGroup();
         phpPathText = new javax.swing.JTextField();
         composerPathText = new javax.swing.JTextField();
         phpPathLabel = new javax.swing.JLabel();
@@ -190,8 +245,15 @@ public class FirstTime extends javax.swing.JFrame {
         selectPHPButton = new javax.swing.JButton();
         selectComposerButton = new javax.swing.JButton();
         confirmButton = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        scrollPane = new javax.swing.JScrollPane();
         checkingLabel = new javax.swing.JTextArea();
+        titleLabel = new javax.swing.JLabel();
+        phpInstalledLabel = new javax.swing.JLabel();
+        yesPHPButton = new javax.swing.JRadioButton();
+        noPHPButton = new javax.swing.JRadioButton();
+        composerInstalledLabel = new javax.swing.JLabel();
+        yesComposerButton = new javax.swing.JRadioButton();
+        noComposerButton = new javax.swing.JRadioButton();
 
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setApproveButtonText("Open");
@@ -202,9 +264,8 @@ public class FirstTime extends javax.swing.JFrame {
             setTitle("Welcome to Artisan");
             setResizable(false);
 
-            panel.setBackground(new java.awt.Color(236, 240, 241));
-
             phpPathText.setText("php");
+            phpPathText.setEnabled(false);
             phpPathText.setPreferredSize(new java.awt.Dimension(26, 20));
             phpPathText.addKeyListener(new java.awt.event.KeyAdapter() {
                 public void keyPressed(java.awt.event.KeyEvent evt) {
@@ -213,21 +274,27 @@ public class FirstTime extends javax.swing.JFrame {
             });
 
             composerPathText.setText("composer");
+            composerPathText.setEnabled(false);
             composerPathText.addKeyListener(new java.awt.event.KeyAdapter() {
                 public void keyPressed(java.awt.event.KeyEvent evt) {
                     composerPathTextKeyPressed(evt);
                 }
             });
 
+            phpPathLabel.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
             phpPathLabel.setText("PHP path");
+            phpPathLabel.setEnabled(false);
 
+            composerPathLabel.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
             composerPathLabel.setText("Composer path");
+            composerPathLabel.setEnabled(false);
 
             selectPHPButton.setBackground(new java.awt.Color(149, 165, 166));
             selectPHPButton.setText("Examinar");
             selectPHPButton.setBorder(null);
             selectPHPButton.setBorderPainted(false);
             selectPHPButton.setContentAreaFilled(false);
+            selectPHPButton.setEnabled(false);
             selectPHPButton.setOpaque(true);
             selectPHPButton.setPreferredSize(new java.awt.Dimension(45, 30));
             selectPHPButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -249,6 +316,7 @@ public class FirstTime extends javax.swing.JFrame {
             selectComposerButton.setBorder(null);
             selectComposerButton.setBorderPainted(false);
             selectComposerButton.setContentAreaFilled(false);
+            selectComposerButton.setEnabled(false);
             selectComposerButton.setOpaque(true);
             selectComposerButton.setPreferredSize(new java.awt.Dimension(45, 30));
             selectComposerButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -286,73 +354,145 @@ public class FirstTime extends javax.swing.JFrame {
                 }
             });
 
-            jScrollPane1.setBackground(new java.awt.Color(255, 255, 255));
-            jScrollPane1.setFocusable(false);
-            jScrollPane1.setOpaque(false);
+            scrollPane.setBackground(new java.awt.Color(255, 255, 255));
+            scrollPane.setFocusable(false);
+            scrollPane.setOpaque(false);
 
             checkingLabel.setEditable(false);
+            checkingLabel.setBackground(new java.awt.Color(51, 51, 51));
             checkingLabel.setColumns(20);
+            checkingLabel.setFont(new java.awt.Font("Consolas", 0, 13)); // NOI18N
+            checkingLabel.setForeground(new java.awt.Color(240, 240, 240));
             checkingLabel.setRows(5);
-            checkingLabel.setOpaque(false);
-            jScrollPane1.setViewportView(checkingLabel);
+            scrollPane.setViewportView(checkingLabel);
 
-            javax.swing.GroupLayout panelLayout = new javax.swing.GroupLayout(panel);
-            panel.setLayout(panelLayout);
-            panelLayout.setHorizontalGroup(
-                panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(panelLayout.createSequentialGroup()
-                    .addGap(137, 137, 137)
-                    .addComponent(confirmButton, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGroup(panelLayout.createSequentialGroup()
-                    .addContainerGap(21, Short.MAX_VALUE)
-                    .addGroup(panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 377, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(panelLayout.createSequentialGroup()
-                            .addGroup(panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, panelLayout.createSequentialGroup()
-                                    .addComponent(composerPathLabel)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(composerPathText, javax.swing.GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, panelLayout.createSequentialGroup()
-                                    .addComponent(phpPathLabel)
-                                    .addGap(46, 46, 46)
-                                    .addComponent(phpPathText, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(selectComposerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(selectPHPButton, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addContainerGap(23, Short.MAX_VALUE))
-            );
-            panelLayout.setVerticalGroup(
-                panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(panelLayout.createSequentialGroup()
-                    .addGap(52, 52, 52)
-                    .addGroup(panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(phpPathLabel)
-                        .addComponent(phpPathText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(selectPHPButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGap(18, 18, 18)
-                    .addGroup(panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(composerPathLabel)
-                        .addComponent(composerPathText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(selectComposerButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGap(18, 18, 18)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(18, 18, 18)
-                    .addComponent(confirmButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(14, Short.MAX_VALUE))
-            );
+            titleLabel.setFont(new java.awt.Font("Fira Code", 0, 18)); // NOI18N
+            titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            titleLabel.setText("First time configuration");
+
+            phpInstalledLabel.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
+            phpInstalledLabel.setText("Do you have PHP installed?");
+
+            phpGroup.add(yesPHPButton);
+            yesPHPButton.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
+            yesPHPButton.setText("Yes");
+            yesPHPButton.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    yesPHPButtonActionPerformed(evt);
+                }
+            });
+
+            phpGroup.add(noPHPButton);
+            noPHPButton.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
+            noPHPButton.setSelected(true);
+            noPHPButton.setText("No");
+            noPHPButton.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    noPHPButtonActionPerformed(evt);
+                }
+            });
+
+            composerInstalledLabel.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
+            composerInstalledLabel.setText("Do you have Composer installed?");
+            composerInstalledLabel.setEnabled(false);
+
+            composerGroup.add(yesComposerButton);
+            yesComposerButton.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
+            yesComposerButton.setText("Yes");
+            yesComposerButton.setEnabled(false);
+            yesComposerButton.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    yesComposerButtonActionPerformed(evt);
+                }
+            });
+
+            composerGroup.add(noComposerButton);
+            noComposerButton.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
+            noComposerButton.setSelected(true);
+            noComposerButton.setText("No");
+            noComposerButton.setEnabled(false);
+            noComposerButton.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    noComposerButtonActionPerformed(evt);
+                }
+            });
 
             javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
             getContentPane().setLayout(layout);
             layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createSequentialGroup()
+                    .addGap(26, 26, 26)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(titleLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(phpPathLabel)
+                                        .addComponent(composerPathLabel))
+                                    .addGap(27, 27, 27)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(phpPathText, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(composerPathText, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(selectPHPButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(selectComposerButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(phpInstalledLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(yesPHPButton)
+                                    .addGap(39, 39, 39)
+                                    .addComponent(noPHPButton)
+                                    .addGap(0, 278, Short.MAX_VALUE))
+                                .addComponent(scrollPane))
+                            .addGap(16, 16, 16))
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(composerInstalledLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(18, 18, 18)
+                            .addComponent(yesComposerButton)
+                            .addGap(39, 39, 39)
+                            .addComponent(noComposerButton)
+                            .addGap(0, 0, Short.MAX_VALUE)))
+                    .addContainerGap())
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(confirmButton, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(274, 274, 274))
             );
             layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(titleLabel)
+                    .addGap(37, 37, 37)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(phpInstalledLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(yesPHPButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(noPHPButton, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)))
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(phpPathLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(phpPathText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(selectPHPButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(composerInstalledLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(yesComposerButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(noComposerButton, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)))
+                    .addGap(12, 12, 12)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(selectComposerButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(composerPathText, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(composerPathLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(scrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(18, 18, 18)
+                    .addComponent(confirmButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(13, Short.MAX_VALUE))
             );
 
             pack();
@@ -407,16 +547,25 @@ public class FirstTime extends javax.swing.JFrame {
     }//GEN-LAST:event_selectComposerButtonActionPerformed
 
     private void confirmButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmButtonActionPerformed
-        confirmButton.setEnabled(false);
-        if (check()) {
-            pref.saveProp("configurations", "php-path", phpPathText.getText());
-            pref.saveProp("configurations", "composer-path", composerPathText.getText());
-            setVisible(false);
-            new MainWindow().setVisible(true);
-        } else {
-            JOptionPane.showMessageDialog(null, "Status: error", "Error", JOptionPane.ERROR_MESSAGE);
-            confirmButton.setEnabled(true);
-        }
+//        confirmButton.setEnabled(false);
+//        if (yesPHPButton.isSelected()) {
+//            if (yesComposerButton.isSelected()) {
+//                if (check()) {
+//                    installLaravel();
+//                    pref.saveProp("configurations", "php-path", phpPathText.getText());
+//                    pref.saveProp("configurations", "composer-path", composerPathText.getText());
+//                    dispose();
+//                    EventQueue.invokeLater(() -> {
+//                        new MainWindow().setVisible(true);
+//                    });
+//                } else {
+//                    JOptionPane.showMessageDialog(null, "Status: error", "Error", JOptionPane.ERROR_MESSAGE);
+//                    confirmButton.setEnabled(true);
+//                }
+//            } else {
+        installLocalComposer(phpPathText.getText());
+//            }
+//        }
     }//GEN-LAST:event_confirmButtonActionPerformed
 
     private void phpPathTextKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_phpPathTextKeyPressed
@@ -431,17 +580,64 @@ public class FirstTime extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_composerPathTextKeyPressed
 
+    private void yesPHPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_yesPHPButtonActionPerformed
+        phpPathLabel.setEnabled(true);
+        phpPathText.setEnabled(true);
+        selectPHPButton.setEnabled(true);
+        checkPHP();
+        checkPHPModules();
+        composerInstalledLabel.setEnabled(true);
+        yesComposerButton.setEnabled(true);
+        noComposerButton.setEnabled(true);
+        if (yesComposerButton.isSelected()) {
+            yesComposerButtonActionPerformed(evt);
+        }
+    }//GEN-LAST:event_yesPHPButtonActionPerformed
+
+    private void noPHPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noPHPButtonActionPerformed
+        phpPathLabel.setEnabled(false);
+        phpPathText.setEnabled(false);
+        selectPHPButton.setEnabled(false);
+        composerInstalledLabel.setEnabled(false);
+        yesComposerButton.setEnabled(false);
+        noComposerButton.setEnabled(false);
+        composerPathLabel.setEnabled(false);
+        composerPathText.setEnabled(false);
+        checkingLabel.setText("");
+    }//GEN-LAST:event_noPHPButtonActionPerformed
+
+    private void yesComposerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_yesComposerButtonActionPerformed
+        composerPathLabel.setEnabled(true);
+        composerPathText.setEnabled(true);
+        selectComposerButton.setEnabled(true);
+        check();
+    }//GEN-LAST:event_yesComposerButtonActionPerformed
+
+    private void noComposerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noComposerButtonActionPerformed
+        composerPathLabel.setEnabled(false);
+        composerPathText.setEnabled(false);
+        selectComposerButton.setEnabled(false);
+    }//GEN-LAST:event_noComposerButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea checkingLabel;
+    private javax.swing.ButtonGroup composerGroup;
+    private javax.swing.JLabel composerInstalledLabel;
     private javax.swing.JLabel composerPathLabel;
     private javax.swing.JTextField composerPathText;
     private javax.swing.JButton confirmButton;
     private javax.swing.JFileChooser fileChooser;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JPanel panel;
+    private javax.swing.JRadioButton noComposerButton;
+    private javax.swing.JRadioButton noPHPButton;
+    private javax.swing.ButtonGroup phpGroup;
+    private javax.swing.JLabel phpInstalledLabel;
     private javax.swing.JLabel phpPathLabel;
     private javax.swing.JTextField phpPathText;
+    private javax.swing.JScrollPane scrollPane;
     private javax.swing.JButton selectComposerButton;
     private javax.swing.JButton selectPHPButton;
+    private javax.swing.JLabel titleLabel;
+    private javax.swing.JRadioButton yesComposerButton;
+    private javax.swing.JRadioButton yesPHPButton;
     // End of variables declaration//GEN-END:variables
 }

@@ -45,7 +45,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class Main {
 
     Preferences pref = new Preferences();
-
+    
     static boolean checkPHP() throws HeadlessException, IOException, NumberFormatException {
 
         final Process p = Runtime.getRuntime().exec(Artisan.PHPVERSION);
