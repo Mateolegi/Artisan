@@ -576,17 +576,21 @@ public class FirstTime extends javax.swing.JFrame {
                 }
             }
         } else {
-            System.out.println("It's here");
             final String php = "C:\\Artisan\\php\\php.exe";
+            File composerPath = new File("C:\\Artisan\\Composer");
             final String composer = "C:\\Artisan\\Composer\\composer.phar";
-            if (checkPHP("C:\\Artisan\\php\\php.exe") && checkPHPModules("C:\\Artisan\\php\\php.exe")) {
-                installLocalComposer(php);
-                pref.saveProp("configurations", "php-path", "C:\\Artisan\\php\\php.exe");
-                pref.saveProp("configurations", "composer-path", composer);
-                dispose();
-                EventQueue.invokeLater(() -> {
-                    new MainWindow().setVisible(true);
-                });
+            if (!composerPath.exists()) {
+                if (composerPath.mkdirs()) {
+                    if (checkPHP(php) && checkPHPModules(php)) {
+                        installLocalComposer(php);
+                        pref.saveProp("configurations", "php-path", php);
+                        pref.saveProp("configurations", "composer-path", composer);
+                        dispose();
+                        EventQueue.invokeLater(() -> {
+                            new MainWindow().setVisible(true);
+                        });
+                    }
+                }
             }
         }
         setCursor(new Cursor(Cursor.DEFAULT_CURSOR));

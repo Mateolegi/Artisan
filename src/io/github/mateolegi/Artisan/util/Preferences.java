@@ -53,7 +53,7 @@ public class Preferences {
     DocumentBuilder docBuilder;
     Document doc;
     Element root;
-    public static final String PATH = "config.xml";
+    public static final String PATH = "C:\\Artisan\\config.xml";
 
     public Preferences() {
         try {

@@ -50,11 +50,6 @@ public class MainWindow extends javax.swing.JFrame {
         this.setLocationRelativeTo(null);
         leftPanel.show();
         canvas.add(leftPanel);
-        try {
-            noti.displayTray("Todo correcto", "INFO");
-        } catch (AWTException | MalformedURLException ex) {
-            System.out.println("Error: " + ex.getMessage());
-        }
         if (!getProjects().isEmpty()) {
             selectedProject.setText("  " + getProjects().getFirst().getName());
         }
