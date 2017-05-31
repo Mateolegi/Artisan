@@ -47,6 +47,8 @@ public class FirstTime extends javax.swing.JFrame {
 
     Preferences pref = new Preferences();
     Terminal terminal = new Terminal();
+    FileNameExtensionFilter exeFilter = new FileNameExtensionFilter("Executable .exe", "exe");
+    FileNameExtensionFilter pharFilter = new FileNameExtensionFilter("PHAR File .phar", "phar");
 
     public FirstTime() {
         initComponents();
@@ -143,7 +145,7 @@ public class FirstTime extends javax.swing.JFrame {
 
     private boolean checkComposer(String php, String composer) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(composer, "-V");
+            ProcessBuilder pb = new ProcessBuilder(php, composer, "-V");
             Process p = pb.start();
             InputStream output = p.getInputStream();
             BufferedReader in = new BufferedReader(new InputStreamReader(output));
@@ -198,8 +200,8 @@ public class FirstTime extends javax.swing.JFrame {
                 p = pb.start();
                 in = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 while ((line = in.readLine()) != null) {
-                    System.out.println(line);
                     checkingLabel.append(line + "\n");
+                    System.out.println(line);
                 }
             }
         } catch (IOException e) {
@@ -271,7 +273,7 @@ public class FirstTime extends javax.swing.JFrame {
             composerPathLabel.setEnabled(false);
 
             selectPHPButton.setBackground(new java.awt.Color(149, 165, 166));
-            selectPHPButton.setText("Examinar");
+            selectPHPButton.setText("Search");
             selectPHPButton.setBorder(null);
             selectPHPButton.setBorderPainted(false);
             selectPHPButton.setContentAreaFilled(false);
@@ -293,7 +295,7 @@ public class FirstTime extends javax.swing.JFrame {
             });
 
             selectComposerButton.setBackground(new java.awt.Color(149, 165, 166));
-            selectComposerButton.setText("Examinar");
+            selectComposerButton.setText("Search");
             selectComposerButton.setBorder(null);
             selectComposerButton.setBorderPainted(false);
             selectComposerButton.setContentAreaFilled(false);
@@ -315,7 +317,7 @@ public class FirstTime extends javax.swing.JFrame {
             });
 
             confirmButton.setBackground(new java.awt.Color(149, 165, 166));
-            confirmButton.setText("Continuar");
+            confirmButton.setText("Continue");
             confirmButton.setBorder(null);
             confirmButton.setBorderPainted(false);
             confirmButton.setContentAreaFilled(false);
@@ -504,8 +506,9 @@ public class FirstTime extends javax.swing.JFrame {
     }//GEN-LAST:event_confirmButtonMouseExited
 
     private void selectPHPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectPHPButtonActionPerformed
+        fileChooser.removeChoosableFileFilter(pharFilter);
         if (System.getProperty("os.name").startsWith("Windows")) {
-            fileChooser.setFileFilter(new FileNameExtensionFilter("Executable .exe", "exe"));
+            fileChooser.setFileFilter(exeFilter);
         }
         fileChooser.showOpenDialog(this);
         File file = fileChooser.getSelectedFile();
@@ -521,7 +524,8 @@ public class FirstTime extends javax.swing.JFrame {
     }//GEN-LAST:event_selectPHPButtonActionPerformed
 
     private void selectComposerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectComposerButtonActionPerformed
-        fileChooser.setFileFilter(new FileNameExtensionFilter("PHAR File .phar", "phar"));
+        fileChooser.removeChoosableFileFilter(exeFilter);
+        fileChooser.setFileFilter(pharFilter);
         fileChooser.showOpenDialog(this);
         File file = fileChooser.getSelectedFile();
         try {
@@ -541,10 +545,10 @@ public class FirstTime extends javax.swing.JFrame {
                 if (check(phpPathText.getText(), composerPathText.getText())) {
                     pref.saveProp("configurations", "php-path", phpPathText.getText());
                     pref.saveProp("configurations", "composer-path", composerPathText.getText());
-                    dispose();
                     EventQueue.invokeLater(() -> {
                         new MainWindow().setVisible(true);
                     });
+                    dispose();
                 } else {
                     JOptionPane.showMessageDialog(null, "Status: error", "Error", JOptionPane.ERROR_MESSAGE);
                     confirmButton.setEnabled(true);
@@ -563,10 +567,10 @@ public class FirstTime extends javax.swing.JFrame {
                             checkingLabel.append("Composer: version " + composerBuild[2] + "\n");
                             pref.saveProp("configurations", "php-path", phpPathText.getText());
                             pref.saveProp("configurations", "composer-path", composerPath);
-                            dispose();
                             EventQueue.invokeLater(() -> {
                                 new MainWindow().setVisible(true);
                             });
+                            dispose();
                         } catch (NumberFormatException e) {
                             System.out.println("Error: " + e.getMessage());
                         }
@@ -577,20 +581,25 @@ public class FirstTime extends javax.swing.JFrame {
             }
         } else {
             final String php = "C:\\Artisan\\php\\php.exe";
-            File composerPath = new File("C:\\Artisan\\Composer");
-            final String composer = "C:\\Artisan\\Composer\\composer.phar";
-            if (!composerPath.exists()) {
-                if (composerPath.mkdirs()) {
-                    if (checkPHP(php) && checkPHPModules(php)) {
-                        installLocalComposer(php);
-                        pref.saveProp("configurations", "php-path", php);
-                        pref.saveProp("configurations", "composer-path", composer);
-                        dispose();
-                        EventQueue.invokeLater(() -> {
-                            new MainWindow().setVisible(true);
-                        });
-                    }
+            if (checkPHP(php) && checkPHPModules(php)) {
+                File composerPath = new File("C:\\Artisan\\Composer");
+                final String composer = "C:\\Artisan\\Composer\\composer.phar";
+                if (!composerPath.exists()) {
+                    composerPath.mkdirs();
                 }
+                installLocalComposer(php);
+                if (checkComposer(php, composer)) {
+                    pref.saveProp("configurations", "php-path", php);
+                    pref.saveProp("configurations", "composer-path", composer);
+                    dispose();
+                    new MainWindow().setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "An error has occurred with the Composer check, please inform the developer.\nmateolegi@gmail.com", "Error", JOptionPane.ERROR_MESSAGE);
+                    System.exit(0);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "An error has occurred with the PHP check, please inform the developer.\nmateolegi@gmail.com", "Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
             }
         }
         setCursor(new Cursor(Cursor.DEFAULT_CURSOR));

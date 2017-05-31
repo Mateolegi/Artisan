@@ -26,8 +26,6 @@ package io.github.mateolegi.Artisan.views;
 import io.github.mateolegi.Artisan.models.Project;
 import io.github.mateolegi.Artisan.util.Notification;
 import io.github.mateolegi.Artisan.util.Preferences;
-import java.awt.AWTException;
-import java.net.MalformedURLException;
 import java.util.LinkedList;
 
 /**
