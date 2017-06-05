@@ -38,6 +38,7 @@ public class MainWindow extends javax.swing.JFrame {
     Notification noti = new Notification();
     LeftPanel leftPanel = new LeftPanel();
     ProjectsPanel projectsPanel = new ProjectsPanel();
+    public Project selectedProject;
     int xMouse, yMouse;
 
     public MainWindow() {
@@ -49,17 +50,17 @@ public class MainWindow extends javax.swing.JFrame {
         leftPanel.show();
         canvas.add(leftPanel);
         if (!getProjects().isEmpty()) {
-            selectedProject.setText("  " + getProjects().getFirst().getName());
+            selectedProject = getProjects().getFirst();
+            projectName.setText("  " + selectedProject.getName());
+            
         }
     }
 
     public LinkedList<Project> getProjects() {
         LinkedList<Project> projects = pref.getProjects();
         if (projects.isEmpty()) {
-            System.out.println("No hay proyectos");
-            
             currentProjectLabel.setVisible(false);
-            selectedProject.setVisible(false);
+            projectName.setVisible(false);
             topSeparator.setVisible(false);
             logo.setBounds(10, 10, 90, 60);
             
@@ -69,14 +70,15 @@ public class MainWindow extends javax.swing.JFrame {
             newProject.backButton.setVisible(false);
             canvas.add(newProject);
         } else {
-            System.out.println("Hay proyectos");
             logo.setBounds(260, 10, 90, 60);
             currentProjectLabel.setVisible(true);
-            selectedProject.setVisible(true);
+            projectName.setVisible(true);
             topSeparator.setVisible(true);
         }
         return projects;
     }
+    
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -93,7 +95,7 @@ public class MainWindow extends javax.swing.JFrame {
         logo = new javax.swing.JLabel();
         topSeparator = new javax.swing.JSeparator();
         currentProjectLabel = new javax.swing.JLabel();
-        selectedProject = new javax.swing.JToggleButton();
+        projectName = new javax.swing.JToggleButton();
         canvas = new javax.swing.JDesktopPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -175,28 +177,28 @@ public class MainWindow extends javax.swing.JFrame {
         topBar.add(currentProjectLabel);
         currentProjectLabel.setBounds(10, 20, 120, 16);
 
-        selectedProject.setFont(new java.awt.Font("Fira Code", 0, 14)); // NOI18N
-        selectedProject.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/down.png"))); // NOI18N
-        selectedProject.setText("Project");
-        selectedProject.setBorder(null);
-        selectedProject.setContentAreaFilled(false);
-        selectedProject.setFocusable(false);
-        selectedProject.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/up.png"))); // NOI18N
-        selectedProject.addMouseListener(new java.awt.event.MouseAdapter() {
+        projectName.setFont(new java.awt.Font("Fira Code", 0, 14)); // NOI18N
+        projectName.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/down.png"))); // NOI18N
+        projectName.setText("Project");
+        projectName.setBorder(null);
+        projectName.setContentAreaFilled(false);
+        projectName.setFocusable(false);
+        projectName.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/up.png"))); // NOI18N
+        projectName.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                selectedProjectMouseEntered(evt);
+                projectNameMouseEntered(evt);
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                selectedProjectMouseExited(evt);
+                projectNameMouseExited(evt);
             }
         });
-        selectedProject.addActionListener(new java.awt.event.ActionListener() {
+        projectName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                selectedProjectActionPerformed(evt);
+                projectNameActionPerformed(evt);
             }
         });
-        topBar.add(selectedProject);
-        selectedProject.setBounds(0, 40, 250, 40);
+        topBar.add(projectName);
+        projectName.setBounds(0, 40, 250, 40);
 
         getContentPane().add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
@@ -261,30 +263,30 @@ public class MainWindow extends javax.swing.JFrame {
         yMouse = evt.getY();
     }//GEN-LAST:event_topBarMousePressed
 
-    private void selectedProjectMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_selectedProjectMouseEntered
-        if (selectedProject.isSelected()) {
-            selectedProject.setOpaque(true);
-            selectedProject.setBorderPainted(true);
-            selectedProject.setBackground(new java.awt.Color(149, 165, 166));
+    private void projectNameMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_projectNameMouseEntered
+        if (projectName.isSelected()) {
+            projectName.setOpaque(true);
+            projectName.setBorderPainted(true);
+            projectName.setBackground(new java.awt.Color(149, 165, 166));
         } else {
-            selectedProject.setOpaque(true);
-            selectedProject.setBorderPainted(true);
-            selectedProject.setBackground(new java.awt.Color(127, 140, 141));
+            projectName.setOpaque(true);
+            projectName.setBorderPainted(true);
+            projectName.setBackground(new java.awt.Color(127, 140, 141));
         }
-    }//GEN-LAST:event_selectedProjectMouseEntered
+    }//GEN-LAST:event_projectNameMouseEntered
 
-    private void selectedProjectMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_selectedProjectMouseExited
-        if (selectedProject.isSelected()) {
-            selectedProject.setBorderPainted(false);
-            selectedProject.setBackground(new java.awt.Color(127, 140, 141));
+    private void projectNameMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_projectNameMouseExited
+        if (projectName.isSelected()) {
+            projectName.setBorderPainted(false);
+            projectName.setBackground(new java.awt.Color(127, 140, 141));
         } else {
-            selectedProject.setOpaque(false);
-            selectedProject.setBorderPainted(false);
+            projectName.setOpaque(false);
+            projectName.setBorderPainted(false);
         }
-    }//GEN-LAST:event_selectedProjectMouseExited
+    }//GEN-LAST:event_projectNameMouseExited
 
-    private void selectedProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectedProjectActionPerformed
-        if (selectedProject.isSelected()) {
+    private void projectNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projectNameActionPerformed
+        if (projectName.isSelected()) {
             canvas.remove(leftPanel);
             projectsPanel.show();
             canvas.add(projectsPanel);
@@ -293,16 +295,16 @@ public class MainWindow extends javax.swing.JFrame {
             leftPanel.show();
             canvas.add(leftPanel);
         }
-    }//GEN-LAST:event_selectedProjectActionPerformed
+    }//GEN-LAST:event_projectNameActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public javax.swing.JDesktopPane canvas;
     private javax.swing.JButton closeButton;
-    private javax.swing.JLabel currentProjectLabel;
-    private javax.swing.JLabel logo;
+    public javax.swing.JLabel currentProjectLabel;
+    public javax.swing.JLabel logo;
     private javax.swing.JButton minimizeButton;
-    public javax.swing.JToggleButton selectedProject;
+    public javax.swing.JToggleButton projectName;
     private javax.swing.JPanel topBar;
-    private javax.swing.JSeparator topSeparator;
+    public javax.swing.JSeparator topSeparator;
     // End of variables declaration//GEN-END:variables
 }

@@ -81,6 +81,11 @@ public class NewProject extends javax.swing.JInternalFrame {
         backButton.setContentAreaFilled(false);
         backButton.setFocusable(false);
         backButton.setPreferredSize(new java.awt.Dimension(30, 30));
+        backButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backButtonActionPerformed(evt);
+            }
+        });
 
         createLabel.setFont(new java.awt.Font("Fira Code", 0, 14)); // NOI18N
         createLabel.setText("Create a new Laravel project");
@@ -184,7 +189,8 @@ public class NewProject extends javax.swing.JInternalFrame {
             if (file.exists() && !file.isDirectory()) {
                 String projectName = JOptionPane.showInputDialog(null, "Project name", "Add project", -1);
                 if (projectName != null && !"".equals(projectName) && projectName.trim().length() != 0) {
-                    if (new Project(projectName, fileChooser.getSelectedFile().getAbsolutePath()).save()) {
+                    Project project = new Project(projectName, fileChooser.getSelectedFile().getAbsolutePath());
+                    if (project.save()) {
                         try {
                             noti.displayTray("Project added", "INFO");
                         } catch (AWTException | MalformedURLException ex) {
@@ -193,8 +199,8 @@ public class NewProject extends javax.swing.JInternalFrame {
                         LeftPanel leftPanel = new LeftPanel();
                         leftPanel.show();
                         topFrame.getProjects();
-                        topFrame.selectedProject.setText("  " + projectName);
-                        topFrame.canvas.add(leftPanel);
+                        topFrame.projectName.setText("  " + projectName);
+                        topFrame.projectsPanel.loadProjects();
                         this.dispose();
                     } else {
                         try {
@@ -243,8 +249,9 @@ public class NewProject extends javax.swing.JInternalFrame {
                     LeftPanel leftPanel = new LeftPanel();
                     leftPanel.show();
                     topFrame.getProjects();
-                    topFrame.selectedProject.setText("  " + projectName);
+                    topFrame.projectName.setText("  " + projectName);
                     topFrame.canvas.add(leftPanel);
+                    topFrame.projectsPanel.loadProjects();
                     this.dispose();
                 } else {
                     try {
@@ -270,6 +277,17 @@ public class NewProject extends javax.swing.JInternalFrame {
         createButton.setBorderPainted(true);
         createButton.setBackground(new java.awt.Color(149, 165, 166));
     }//GEN-LAST:event_createButtonMouseExited
+
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+        MainWindow topFrame = (MainWindow) (JFrame) SwingUtilities.getWindowAncestor(this);
+        topFrame.getProjects();
+        topFrame.leftPanel.show();
+        topFrame.canvas.add(topFrame.leftPanel);
+        topFrame.projectName.setSelected(false);
+        topFrame.projectName.setBorderPainted(false);
+        topFrame.projectName.setOpaque(false);
+        dispose();
+    }//GEN-LAST:event_backButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
