@@ -250,7 +250,7 @@ public class NewProject extends javax.swing.JInternalFrame {
                     leftPanel.show();
                     topFrame.getProjects();
                     topFrame.projectName.setText("  " + projectName);
-                    topFrame.canvas.add(leftPanel);
+                    topFrame.panelCanvas.add(leftPanel);
                     topFrame.projectsPanel.loadProjects();
                     this.dispose();
                 } else {
@@ -282,7 +282,7 @@ public class NewProject extends javax.swing.JInternalFrame {
         MainWindow topFrame = (MainWindow) (JFrame) SwingUtilities.getWindowAncestor(this);
         topFrame.getProjects();
         topFrame.leftPanel.show();
-        topFrame.canvas.add(topFrame.leftPanel);
+        topFrame.panelCanvas.add(topFrame.leftPanel);
         topFrame.projectName.setSelected(false);
         topFrame.projectName.setBorderPainted(false);
         topFrame.projectName.setOpaque(false);

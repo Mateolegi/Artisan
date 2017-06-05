@@ -38,6 +38,7 @@ public class MainWindow extends javax.swing.JFrame {
     Notification noti = new Notification();
     LeftPanel leftPanel = new LeftPanel();
     ProjectsPanel projectsPanel = new ProjectsPanel();
+    Manager manager = new Manager();
     public Project selectedProject;
     int xMouse, yMouse;
 
@@ -48,7 +49,9 @@ public class MainWindow extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         leftPanel.show();
-        canvas.add(leftPanel);
+        manager.show();
+        panelCanvas.add(leftPanel);
+        canvas.add(manager);
         if (!getProjects().isEmpty()) {
             selectedProject = getProjects().getFirst();
             projectName.setText("  " + selectedProject.getName());
@@ -65,10 +68,10 @@ public class MainWindow extends javax.swing.JFrame {
             logo.setBounds(10, 10, 90, 60);
             
             NewProject newProject = new NewProject();
-            canvas.removeAll();
+            panelCanvas.removeAll();
             newProject.show();
             newProject.backButton.setVisible(false);
-            canvas.add(newProject);
+            panelCanvas.add(newProject);
         } else {
             logo.setBounds(260, 10, 90, 60);
             currentProjectLabel.setVisible(true);
@@ -96,6 +99,7 @@ public class MainWindow extends javax.swing.JFrame {
         topSeparator = new javax.swing.JSeparator();
         currentProjectLabel = new javax.swing.JLabel();
         projectName = new javax.swing.JToggleButton();
+        panelCanvas = new javax.swing.JDesktopPane();
         canvas = new javax.swing.JDesktopPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -202,21 +206,34 @@ public class MainWindow extends javax.swing.JFrame {
 
         getContentPane().add(topBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
 
-        canvas.setBackground(new java.awt.Color(236, 240, 241));
-        canvas.setPreferredSize(new java.awt.Dimension(960, 580));
+        panelCanvas.setBackground(new java.awt.Color(236, 240, 241));
+        panelCanvas.setPreferredSize(new java.awt.Dimension(960, 580));
+
+        javax.swing.GroupLayout panelCanvasLayout = new javax.swing.GroupLayout(panelCanvas);
+        panelCanvas.setLayout(panelCanvasLayout);
+        panelCanvasLayout.setHorizontalGroup(
+            panelCanvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 250, Short.MAX_VALUE)
+        );
+        panelCanvasLayout.setVerticalGroup(
+            panelCanvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 580, Short.MAX_VALUE)
+        );
+
+        getContentPane().add(panelCanvas, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 80, 250, 580));
 
         javax.swing.GroupLayout canvasLayout = new javax.swing.GroupLayout(canvas);
         canvas.setLayout(canvasLayout);
         canvasLayout.setHorizontalGroup(
             canvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 960, Short.MAX_VALUE)
+            .addGap(0, 710, Short.MAX_VALUE)
         );
         canvasLayout.setVerticalGroup(
             canvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 580, Short.MAX_VALUE)
         );
 
-        getContentPane().add(canvas, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 80, -1, 580));
+        getContentPane().add(canvas, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 80, 710, 580));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -287,22 +304,23 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void projectNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projectNameActionPerformed
         if (projectName.isSelected()) {
-            canvas.remove(leftPanel);
+            panelCanvas.remove(leftPanel);
             projectsPanel.show();
-            canvas.add(projectsPanel);
+            panelCanvas.add(projectsPanel);
         } else {
-            canvas.remove(projectsPanel);
+            panelCanvas.remove(projectsPanel);
             leftPanel.show();
-            canvas.add(leftPanel);
+            panelCanvas.add(leftPanel);
         }
     }//GEN-LAST:event_projectNameActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    public javax.swing.JDesktopPane canvas;
+    private javax.swing.JDesktopPane canvas;
     private javax.swing.JButton closeButton;
     public javax.swing.JLabel currentProjectLabel;
     public javax.swing.JLabel logo;
     private javax.swing.JButton minimizeButton;
+    public javax.swing.JDesktopPane panelCanvas;
     public javax.swing.JToggleButton projectName;
     private javax.swing.JPanel topBar;
     public javax.swing.JSeparator topSeparator;

@@ -23,6 +23,8 @@
  */
 package io.github.mateolegi.Artisan.views;
 
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
 
 /**
@@ -48,25 +50,48 @@ public class LeftPanel extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        serverButton = new javax.swing.JButton();
+
         setBackground(new java.awt.Color(189, 195, 199));
         setBorder(null);
         setPreferredSize(new java.awt.Dimension(250, 580));
+
+        serverButton.setText("Start server");
+        serverButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                serverButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 250, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(serverButton, javax.swing.GroupLayout.DEFAULT_SIZE, 230, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 553, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addComponent(serverButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(487, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void serverButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_serverButtonActionPerformed
+        MainWindow topFrame = (MainWindow) (JFrame) SwingUtilities.getWindowAncestor(this);
+        if (topFrame.manager.getTabbedPane().indexOfTab(topFrame.selectedProject.getName().concat(" server")) == -1) {
+            topFrame.manager.getTabbedPane().addTab(topFrame.selectedProject.getName().concat(" server"), null);
+        }
+    }//GEN-LAST:event_serverButtonActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton serverButton;
     // End of variables declaration//GEN-END:variables
 }

@@ -57,6 +57,7 @@ public class ProjectsPanel extends javax.swing.JInternalFrame {
             this.validate();
             this.repaint();
         });
+        projectsList.clear();
         y = 120;
         pref.getProjects().stream().map((project) -> {
             javax.swing.JButton projectButton = new javax.swing.JButton();
@@ -82,7 +83,7 @@ public class ProjectsPanel extends javax.swing.JInternalFrame {
                 topFrame.selectedProject = project;
                 topFrame.projectName.setText(project.getName());
                 topFrame.leftPanel.show();
-                topFrame.canvas.add(topFrame.leftPanel);
+                topFrame.panelCanvas.add(topFrame.leftPanel);
                 topFrame.projectName.setSelected(false);
                 topFrame.projectName.setOpaque(false);
                 dispose();
@@ -101,6 +102,7 @@ public class ProjectsPanel extends javax.swing.JInternalFrame {
             this.validate();
             this.repaint();
         });
+        projectsList.clear();
         y = 120;
         pref.getProjects().stream().filter((project) -> (project.getName().toLowerCase().contains(search.toLowerCase()))).map((project) -> {
             javax.swing.JButton projectButton = new javax.swing.JButton();
@@ -127,7 +129,7 @@ public class ProjectsPanel extends javax.swing.JInternalFrame {
                 topFrame.selectedProject = project;
                 topFrame.projectName.setText(project.getName());
                 topFrame.leftPanel.show();
-                topFrame.canvas.add(topFrame.leftPanel);
+                topFrame.panelCanvas.add(topFrame.leftPanel);
                 topFrame.projectName.setSelected(false);
                 topFrame.projectName.setOpaque(false);
                 dispose();
@@ -195,7 +197,7 @@ public class ProjectsPanel extends javax.swing.JInternalFrame {
         NewProject newProject = new NewProject();
         //topFrame.getCanvas().removeAll();
         newProject.show();
-        topFrame.canvas.add(newProject);
+        topFrame.panelCanvas.add(newProject);
         this.dispose();
     }//GEN-LAST:event_newProjectButtonActionPerformed
 
