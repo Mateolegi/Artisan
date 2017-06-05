@@ -315,7 +315,7 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_projectNameActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JDesktopPane canvas;
+    public javax.swing.JDesktopPane canvas;
     private javax.swing.JButton closeButton;
     public javax.swing.JLabel currentProjectLabel;
     public javax.swing.JLabel logo;

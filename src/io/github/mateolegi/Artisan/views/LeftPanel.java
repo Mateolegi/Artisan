@@ -87,6 +87,8 @@ public class LeftPanel extends javax.swing.JInternalFrame {
         MainWindow topFrame = (MainWindow) (JFrame) SwingUtilities.getWindowAncestor(this);
         if (topFrame.manager.getTabbedPane().indexOfTab(topFrame.selectedProject.getName().concat(" server")) == -1) {
             topFrame.manager.getTabbedPane().addTab(topFrame.selectedProject.getName().concat(" server"), null);
+        } else {
+            topFrame.manager.getTabbedPane().setSelectedIndex(topFrame.manager.getTabbedPane().indexOfTab(topFrame.selectedProject.getName().concat(" server")));
         }
     }//GEN-LAST:event_serverButtonActionPerformed
 

@@ -189,16 +189,20 @@ public class ProjectsPanel extends javax.swing.JInternalFrame {
 
     private void newProjectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newProjectButtonActionPerformed
         MainWindow topFrame = (MainWindow) (JFrame) SwingUtilities.getWindowAncestor(this);
-        topFrame.currentProjectLabel.setVisible(false);
-        topFrame.projectName.setVisible(false);
-        topFrame.topSeparator.setVisible(false);
-        topFrame.logo.setBounds(10, 10, 90, 60);
+        //topFrame.currentProjectLabel.setVisible(false);
+        //topFrame.projectName.setVisible(false);
+        //topFrame.topSeparator.setVisible(false);
+        //topFrame.logo.setBounds(10, 10, 90, 60);
 
-        NewProject newProject = new NewProject();
+        NewProjectPanel newProject = new NewProjectPanel();
         //topFrame.getCanvas().removeAll();
-        newProject.show();
-        topFrame.panelCanvas.add(newProject);
-        this.dispose();
+        //newProject.show();
+        if (topFrame.manager.getTabbedPane().indexOfTab("New project") == -1) {
+            topFrame.manager.getTabbedPane().addTab("New project", newProject);
+        } else {
+            topFrame.manager.getTabbedPane().setSelectedIndex(topFrame.manager.getTabbedPane().indexOfTab("New project"));
+        }
+        //this.dispose();
     }//GEN-LAST:event_newProjectButtonActionPerformed
 
     private void newProjectButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_newProjectButtonMouseEntered

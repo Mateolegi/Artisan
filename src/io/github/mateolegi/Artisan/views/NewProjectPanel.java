@@ -1,25 +1,7 @@
 /*
- * The MIT License
- *
- * Copyright 2017 mateo.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 package io.github.mateolegi.Artisan.views;
 
@@ -31,19 +13,20 @@ import java.net.MalformedURLException;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import javax.swing.plaf.basic.BasicInternalFrameUI;
 
 /**
  *
- * @author mateo
+ * @author mateo.leal
  */
-public class NewProject extends javax.swing.JInternalFrame {
+public class NewProjectPanel extends javax.swing.JPanel {
 
     Notification noti = new Notification();
-
-    public NewProject() {
+    
+    /**
+     * Creates new form NewProjectPanel
+     */
+    public NewProjectPanel() {
         initComponents();
-        ((BasicInternalFrameUI) this.getUI()).setNorthPane(null);
         existingButton.setOpaque(true);
         existingButton.setBorderPainted(true);
         existingButton.setBackground(new java.awt.Color(149, 165, 166));
@@ -73,8 +56,7 @@ public class NewProject extends javax.swing.JInternalFrame {
         fileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
         setBackground(new java.awt.Color(255, 255, 255));
-        setBorder(null);
-        setPreferredSize(new java.awt.Dimension(960, 580));
+        setPreferredSize(new java.awt.Dimension(710, 580));
 
         backButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/io/github/mateolegi/Artisan/images/back.png"))); // NOI18N
         backButton.setBorder(null);
@@ -135,22 +117,26 @@ public class NewProject extends javax.swing.JInternalFrame {
 
         separator.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(110, 110, 110)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(createButton, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(createLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 130, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(41, 41, 41)
+                        .addComponent(createLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 50, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(createButton, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(98, 98, 98)))
                 .addComponent(separator, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(66, 66, 66)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(existingButton, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(existingLabel))
-                .addGap(92, 92, 92))
+                    .addComponent(existingLabel)
+                    .addComponent(existingButton, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(39, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addComponent(backButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -164,71 +150,43 @@ public class NewProject extends javax.swing.JInternalFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(185, 185, 185)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(createLabel)
-                            .addComponent(existingLabel))
+                        .addComponent(createLabel)
                         .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(createButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(existingButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(createButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(84, 84, 84)
+                        .addGap(184, 184, 184)
+                        .addComponent(existingLabel)
+                        .addGap(18, 18, 18)
+                        .addComponent(existingButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(80, 80, 80)
                         .addComponent(separator, javax.swing.GroupLayout.PREFERRED_SIZE, 296, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(132, Short.MAX_VALUE))
+                .addContainerGap(163, Short.MAX_VALUE))
         );
-
-        pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void existingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_existingButtonActionPerformed
-        fileChooser.showOpenDialog(this);
+    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
         MainWindow topFrame = (MainWindow) (JFrame) SwingUtilities.getWindowAncestor(this);
-        System.out.println(topFrame);
-        if (fileChooser.getSelectedFile() != null) {
-            File file = new File(fileChooser.getSelectedFile() + "\\artisan");
-            if (file.exists() && !file.isDirectory()) {
-                String projectName = JOptionPane.showInputDialog(null, "Project name", "Add project", -1);
-                if (projectName != null && !"".equals(projectName) && projectName.trim().length() != 0) {
-                    Project project = new Project(projectName, fileChooser.getSelectedFile().getAbsolutePath());
-                    if (project.save()) {
-                        try {
-                            noti.displayTray("Project added", "INFO");
-                        } catch (AWTException | MalformedURLException ex) {
-                            System.out.println("Error: " + ex.getMessage());
-                        }
-                        LeftPanel leftPanel = new LeftPanel();
-                        leftPanel.show();
-                        topFrame.getProjects();
-                        topFrame.projectName.setText("  " + projectName);
-                        topFrame.projectsPanel.loadProjects();
-                        topFrame.panelCanvas.setBounds(0, 80, 250, 580);
-                        this.dispose();
-                    } else {
-                        try {
-                            noti.displayTray("Error adding project", "ERROR");
-                        } catch (AWTException | MalformedURLException ex) {
-                            System.out.println("Error: " + ex.getMessage());
-                        }
-                    }
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Folder is not a suitable Laravel project", "Artisan not found", JOptionPane.WARNING_MESSAGE);
-            }
-            fileChooser.setSelectedFile(null);
-        }
-    }//GEN-LAST:event_existingButtonActionPerformed
+        topFrame.getProjects();
+        topFrame.leftPanel.show();
+        topFrame.panelCanvas.add(topFrame.leftPanel);
+        topFrame.projectName.setSelected(false);
+        topFrame.projectName.setBorderPainted(false);
+        topFrame.projectName.setOpaque(false);
+        topFrame.manager.getTabbedPane().remove(topFrame.manager.getTabbedPane().indexOfTab("New project"));
+    }//GEN-LAST:event_backButtonActionPerformed
 
-    private void existingButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_existingButtonMouseEntered
-        existingButton.setOpaque(true);
-        existingButton.setBorderPainted(true);
-        existingButton.setBackground(new java.awt.Color(189, 195, 199));
-    }//GEN-LAST:event_existingButtonMouseEntered
+    private void createButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_createButtonMouseEntered
+        createButton.setOpaque(true);
+        createButton.setBorderPainted(true);
+        createButton.setBackground(new java.awt.Color(189, 195, 199));
+    }//GEN-LAST:event_createButtonMouseEntered
 
-    private void existingButtonMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_existingButtonMouseExited
-        existingButton.setOpaque(true);
-        existingButton.setBorderPainted(true);
-        existingButton.setBackground(new java.awt.Color(149, 165, 166));
-    }//GEN-LAST:event_existingButtonMouseExited
+    private void createButtonMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_createButtonMouseExited
+        createButton.setOpaque(true);
+        createButton.setBorderPainted(true);
+        createButton.setBackground(new java.awt.Color(149, 165, 166));
+    }//GEN-LAST:event_createButtonMouseExited
 
     private void createButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createButtonActionPerformed
         fileChooser.showSaveDialog(this);
@@ -253,8 +211,7 @@ public class NewProject extends javax.swing.JInternalFrame {
                     topFrame.projectName.setText("  " + projectName);
                     topFrame.panelCanvas.add(leftPanel);
                     topFrame.projectsPanel.loadProjects();
-                    topFrame.panelCanvas.setBounds(0, 80, 250, 580);
-                    this.dispose();
+                    topFrame.manager.getTabbedPane().remove(topFrame.manager.getTabbedPane().indexOfTab("New project"));
                 } else {
                     try {
                         noti.displayTray("Error adding project", "ERROR");
@@ -268,29 +225,54 @@ public class NewProject extends javax.swing.JInternalFrame {
         }
     }//GEN-LAST:event_createButtonActionPerformed
 
-    private void createButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_createButtonMouseEntered
-        createButton.setOpaque(true);
-        createButton.setBorderPainted(true);
-        createButton.setBackground(new java.awt.Color(189, 195, 199));
-    }//GEN-LAST:event_createButtonMouseEntered
+    private void existingButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_existingButtonMouseEntered
+        existingButton.setOpaque(true);
+        existingButton.setBorderPainted(true);
+        existingButton.setBackground(new java.awt.Color(189, 195, 199));
+    }//GEN-LAST:event_existingButtonMouseEntered
 
-    private void createButtonMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_createButtonMouseExited
-        createButton.setOpaque(true);
-        createButton.setBorderPainted(true);
-        createButton.setBackground(new java.awt.Color(149, 165, 166));
-    }//GEN-LAST:event_createButtonMouseExited
+    private void existingButtonMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_existingButtonMouseExited
+        existingButton.setOpaque(true);
+        existingButton.setBorderPainted(true);
+        existingButton.setBackground(new java.awt.Color(149, 165, 166));
+    }//GEN-LAST:event_existingButtonMouseExited
 
-    private void backButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backButtonActionPerformed
+    private void existingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_existingButtonActionPerformed
+        fileChooser.showOpenDialog(this);
         MainWindow topFrame = (MainWindow) (JFrame) SwingUtilities.getWindowAncestor(this);
-        topFrame.getProjects();
-        topFrame.leftPanel.show();
-        topFrame.panelCanvas.add(topFrame.leftPanel);
-        topFrame.projectName.setSelected(false);
-        topFrame.projectName.setBorderPainted(false);
-        topFrame.projectName.setOpaque(false);
-        topFrame.panelCanvas.setBounds(0, 80, 250, 580);
-        dispose();
-    }//GEN-LAST:event_backButtonActionPerformed
+        System.out.println(topFrame);
+        if (fileChooser.getSelectedFile() != null) {
+            File file = new File(fileChooser.getSelectedFile() + "\\artisan");
+            if (file.exists() && !file.isDirectory()) {
+                String projectName = JOptionPane.showInputDialog(null, "Project name", "Add project", -1);
+                if (projectName != null && !"".equals(projectName) && projectName.trim().length() != 0) {
+                    Project project = new Project(projectName, fileChooser.getSelectedFile().getAbsolutePath());
+                    if (project.save()) {
+                        try {
+                            noti.displayTray("Project added", "INFO");
+                        } catch (AWTException | MalformedURLException ex) {
+                            System.out.println("Error: " + ex.getMessage());
+                        }
+                        LeftPanel leftPanel = new LeftPanel();
+                        leftPanel.show();
+                        topFrame.getProjects();
+                        topFrame.projectName.setText("  " + projectName);
+                        topFrame.projectsPanel.loadProjects();
+                        topFrame.manager.getTabbedPane().remove(topFrame.manager.getTabbedPane().indexOfTab("New project"));
+                    } else {
+                        try {
+                            noti.displayTray("Error adding project", "ERROR");
+                        } catch (AWTException | MalformedURLException ex) {
+                            System.out.println("Error: " + ex.getMessage());
+                        }
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Folder is not a suitable Laravel project", "Artisan not found", JOptionPane.WARNING_MESSAGE);
+            }
+            fileChooser.setSelectedFile(null);
+        }
+    }//GEN-LAST:event_existingButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
