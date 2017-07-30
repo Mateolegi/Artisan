@@ -37,17 +37,16 @@ import javax.swing.UnsupportedLookAndFeelException;
  *
  * @author Mateo Leal
  */
-public class Main {
+public class MainOld {
 
     Preferences pref = new Preferences();
 
     static boolean checkPHP() throws HeadlessException, IOException, NumberFormatException {
 
-        final Process p = Runtime.getRuntime().exec(Deprecated.PHPVERSION);
-        BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        String line = input.readLine();
-        String[] phpBuild = line.split(" ");
-        String version = phpBuild[1];
+        final Process p = Runtime.getRuntime().exec("php -v");
+        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        String line = in.readLine();
+        String version = line.split(" ")[1];
         System.out.println(version);
         float ver = Float.parseFloat(version.substring(0, 2));
         if (ver >= 5.6) {
