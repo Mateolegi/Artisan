@@ -47,7 +47,7 @@ public class Preferences {
     DocumentBuilder docBuilder;
     Document doc;
     Element root;
-    public static final String PATH = "C:\\Artisan\\config.xml";
+    public static final String PATH = System.getProperty("user.dir") + "\\config.xml";
 
     public Preferences() {
         try {

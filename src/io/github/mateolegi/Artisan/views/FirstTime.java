@@ -17,6 +17,8 @@
  */
 package io.github.mateolegi.Artisan.views;
 
+import io.github.mateolegi.Artisan.controllers.CheckComponent;
+import io.github.mateolegi.Artisan.main.Main;
 import io.github.mateolegi.Artisan.util.Preferences;
 import io.github.mateolegi.Artisan.util.Terminal;
 import java.awt.Cursor;
@@ -25,10 +27,7 @@ import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.LinkedList;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
@@ -43,6 +42,8 @@ public class FirstTime extends javax.swing.JFrame {
     Terminal terminal = new Terminal();
     FileNameExtensionFilter exeFilter = new FileNameExtensionFilter("Executable .exe", "exe");
     FileNameExtensionFilter pharFilter = new FileNameExtensionFilter("PHAR File .phar", "phar");
+    String phpPath;
+    String composerPath;
 
     public FirstTime() {
         initComponents();
@@ -66,140 +67,92 @@ public class FirstTime extends javax.swing.JFrame {
     }
 
     private boolean checkPHP(String php) {
-        boolean flag;
-        try {
-            ProcessBuilder pb = new ProcessBuilder(php, "-v");
-            Process p = pb.start();
-            InputStream output = p.getInputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(output));
-            String reading = in.readLine();
-            System.out.println(reading);
-            String[] phpBuild = reading.split(" ");
-            String version = phpBuild[1];
-            float ver = Float.parseFloat(version.substring(0, 2));
-            checkingLabel.setText("PHP: version " + version + "\n");
-            if (ver >= 5.6) {
-                flag = true;
-            } else {
-                checkingLabel.append("PHP: A version greater than 5.6.4 is required\n");
-                flag = false;
-            }
-        } catch (NumberFormatException | IOException ex) {
-            checkingLabel.setText("PHP: Could not find command\n");
-            flag = false;
+        int checkPHP = CheckComponent.checkPHP(php);
+        switch (checkPHP) {
+            case CheckComponent.PHP_UNSOPORTED_VERSION:
+                checkingLabel.setText("PHP: A version greater than 5.6.4 is required\n");
+                return false;
+            case CheckComponent.PHP_NOT_FOUND:
+                checkingLabel.setText("PHP: Could not find command\n");
+                return false;
+            case CheckComponent.PHP_SUCCESSFUL:
+//                checkingLabel.setText("PHP: version " + checkPHP + "\n");
+                checkingLabel.setText("PHP: Successful\n");
+                return true;
+            default:
+                return false;
         }
-        return flag;
     }
 
     private boolean checkPHPModules(String php) {
-
-        try {
-
-            LinkedList<String> modules = new LinkedList<>();
-            ProcessBuilder pb = new ProcessBuilder(php, "-m");
-            Process p = pb.start();
-            InputStream output = p.getInputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(output));
-            String line;
-            try {
-                while ((line = in.readLine()) != null) {
-                    modules.add(line);
-                }
-                String missingExtensions = "";
-                if (modules.indexOf("openssl") == -1) {
-                    missingExtensions += "openssl, ";
-                }
-                if (modules.indexOf("mbstring") == -1) {
-                    missingExtensions += "mbstring, ";
-                }
-                if (modules.indexOf("PDO") == -1) {
-                    missingExtensions += "PDO, ";
-                }
-                if (modules.indexOf("tokenizer") == -1) {
-                    missingExtensions += "tokenizer, ";
-                }
-                if (modules.indexOf("xml") == -1) {
-                    missingExtensions += "xml ";
-                }
-                if (!missingExtensions.equals("")) {
-                    checkingLabel.append("PHP: Extensions " + missingExtensions + "are not enabled\n");
-                    return false;
-                } else {
-                    return true;
-                }
-            } catch (IOException ex) {
-                System.out.println("Error: " + ex.getMessage());
+        int checkPHPModules = CheckComponent.getPHPModules(php);
+        switch (checkPHPModules) {
+            case CheckComponent.PHP_MODULES_SUCCESSFUL:
+                return true;
+            case CheckComponent.PHP_MODULES_FAIL:
+                checkingLabel.setText("PHP: Some extensions required are not enabled\n");
                 return false;
-            }
-        } catch (IOException ex) {
-            System.out.println("Error: " + ex.getMessage());
-            return false;
+            case CheckComponent.PHP_NOT_FOUND:
+                checkingLabel.setText("PHP: Could not find command\n");
+                return false;
+            default:
+                return false;
         }
     }
 
     private boolean checkComposer(String php, String composer) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder(php, composer, "-V");
-            Process p = pb.start();
-            InputStream output = p.getInputStream();
-            BufferedReader in = new BufferedReader(new InputStreamReader(output));
-            String line = in.readLine();
-            System.out.println(line);
-            String[] composerBuild = line.split(" ");
-            try {
-                boolean flag = Float.parseFloat(composerBuild[2].substring(0, 3)) > 1.0;
-                checkingLabel.append("Composer: version " + composerBuild[2] + "\n");
-                return flag;
-            } catch (NumberFormatException e) {
-                System.out.println("Error: " + e.getMessage());
+        int checkComposer = CheckComponent.checkComposer(php, composer);
+        switch (checkComposer) {
+            case CheckComponent.COMPOSER_SUCCESSFUL:
+                checkingLabel.append("Composer: Successful\n");
+                return true;
+            case CheckComponent.COMPOSER_NOT_FOUND:
+                checkingLabel.append("Composer: Could not find command\n");
                 return false;
-            }
-        } catch (IOException | NullPointerException ex) {
-            checkingLabel.append("Composer: Could not find command\n");
-            return false;
+            default:
+                return false;
         }
     }
 
     private void installLocalComposer(String php) {
-        String[] installComposerWindows = {
-            "@ECHO OFF",
-            "REM Set Home folder as Composer Global Configuration Folder",
-            "SET COMPOSER_HOME=%~dp0Home",
-            "if not exist %COMPOSER_HOME% md \"%COMPOSER_HOME%\"",
-            php + " -r \"readfile('https://getcomposer.org/installer');\" | " + php,
-            "SET COMPOSER_BAT=%~dp0composer.bat",
-            "if not exist \"%COMPOSER_BAT\" (",
-            "echo @ECHO OFF> \"%COMPOSER_BAT%\"",
-            "echo SET COMPOSER_HOME=%%~dp0Home>> \"%COMPOSER_BAT%\"",
-            "echo if not exist %%COMPOSER_HOME%% md \"%%COMPOSER_HOME%%\">> \"%COMPOSER_BAT%\"",
-            "echo " + php + " \"%%~dp0composer.phar\" %%*>> \"%COMPOSER_BAT%\"",
-            "echo EXIT /B %%ERRORLEVEL%%>> \"%COMPOSER_BAT%\"",
-            ")",
-            "call composer --version | findstr /i /r /c:\"Composer......version\"",
-            "REM Increases Composer Timeout",
-            "call composer --quiet config --global process-timeout 3000",
-            "REM Set Local folder for Composer Internal Cache",
-            "SET COMPOSER_LOCAL=%~dp0Local",
-            "if not exist %COMPOSER_LOCAL% md \"%COMPOSER_LOCAL%\"",
-            "call composer --quiet config --global cache-dir \"%COMPOSER_LOCAL%\""
-        };
-        try {
-            Process p;
-            ProcessBuilder pb;
-            BufferedReader in;
-            String line;
-            for (int i = 0; i < 20; i++) {
-                pb = new ProcessBuilder(Arrays.asList(new String[]{"cmd.exe", "/C", installComposerWindows[i]}));
-                pb.directory(new File("C:\\Artisan\\Composer"));
-                p = pb.start();
-                in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                while ((line = in.readLine()) != null) {
-                    checkingLabel.append(line + "\n");
-                    System.out.println(line);
-                }
+        if (php.contains(" ")) php = "\"" + php + "\"";
+        
+        File folder = new File(Main.APP_DIRECTORY + "\\Composer");
+        if (!folder.isDirectory()) folder.delete();
+        if (!folder.mkdir()) {
+            if (!folder.mkdirs()) {
+                System.err.println("Can't create folder");
             }
-        } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
+        }
+        checkingLabel.append("Downloading Composer...\n");
+        try {
+            //TODO: Finish subprocess in ProcessBuilder and Composer downloader
+//            ProcessBuilder pb = new ProcessBuilder("");
+//            pb.
+            Runtime.getRuntime().exec(php + " -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"", null, folder).waitFor();
+            Process p = Runtime.getRuntime().exec(php + " -r \"if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;\"", null, folder);
+            String response = new BufferedReader(new InputStreamReader(p.getInputStream())).readLine();
+            checkingLabel.append(response + "\n");
+            if (response.equals("Installer verified")) {
+                p = Runtime.getRuntime().exec(php + " composer-setup.php", null, folder);
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((response = br.readLine()) != null) {
+                    checkingLabel.append(response + "\n");
+                }
+                p.waitFor();
+                p = Runtime.getRuntime().exec(php + " -r \"unlink('composer-setup.php');\"", null, folder);
+                p.waitFor();
+                p = Runtime.getRuntime().exec(php + " composer.phar global require \"laravel/installer\"", null, folder);
+                br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((response = br.readLine()) != null) {
+                    checkingLabel.append(response + "\n");
+                }
+                p.waitFor();
+            } else {
+                checkingLabel.append("An error occurred downloading Composer\n");
+            }
+        } catch (IOException | InterruptedException e) {
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
@@ -506,14 +459,15 @@ public class FirstTime extends javax.swing.JFrame {
         }
         fileChooser.showOpenDialog(this);
         File file = fileChooser.getSelectedFile();
-
-        try {
+        if (file != null) {
+            setCursor(new Cursor(Cursor.WAIT_CURSOR));
             String path = file.getAbsolutePath();
             phpPathText.setText(path);
             checkingLabel.setText("");
-            checkPHP(path);
-            checkPHPModules(path);
-        } catch (Exception e) {
+            if (checkPHP(path) && checkPHPModules(path)) {
+                phpPath = phpPathText.getText();
+            }
+            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         }
     }//GEN-LAST:event_selectPHPButtonActionPerformed
 
@@ -522,12 +476,16 @@ public class FirstTime extends javax.swing.JFrame {
         fileChooser.setFileFilter(pharFilter);
         fileChooser.showOpenDialog(this);
         File file = fileChooser.getSelectedFile();
-        try {
+        if (file != null) {
+            setCursor(new Cursor(Cursor.WAIT_CURSOR));
             String path = file.getAbsolutePath();
             composerPathText.setText(path);
             checkingLabel.setText("");
-            check(phpPathText.getText(), path);
-        } catch (Exception e) {
+            if (check(phpPathText.getText(), path)) {
+                phpPath = phpPathText.getText();
+                composerPath = composerPathText.getText();
+            }
+            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         }
     }//GEN-LAST:event_selectComposerButtonActionPerformed
 
@@ -550,17 +508,18 @@ public class FirstTime extends javax.swing.JFrame {
                 }
             } else {
                 if (checkPHP(phpPathText.getText()) && checkPHPModules(phpPathText.getText())) {
+                    System.out.println("Sabe");
                     installLocalComposer(phpPathText.getText());
-                    String composerPath = "C:\\Artisan\\Composer\\composer.phar";
+                    String composerFilePath = Main.APP_DIRECTORY + "\\Composer\\composer.phar";
                     try {
-                        ProcessBuilder pb = new ProcessBuilder("cmd", "/c", phpPathText.getText(), composerPath, "-V");
+                        ProcessBuilder pb = new ProcessBuilder("cmd", "/c", phpPathText.getText(), composerFilePath, "-V");
                         Process p = pb.start();
                         String[] composerBuild = new BufferedReader(new InputStreamReader(p.getInputStream())).readLine().split(" ");
                         try {
                             Float.parseFloat(composerBuild[2].substring(0, 3));
                             checkingLabel.append("Composer: version " + composerBuild[2] + "\n");
                             pref.saveProp("configurations", "php-path", phpPathText.getText());
-                            pref.saveProp("configurations", "composer-path", composerPath);
+                            pref.saveProp("configurations", "composer-path", composerFilePath);
                             EventQueue.invokeLater(() -> {
                                 new MainWindow().setVisible(true);
                             });
@@ -574,12 +533,12 @@ public class FirstTime extends javax.swing.JFrame {
                 }
             }
         } else {
-            final String php = "C:\\Artisan\\php\\php.exe";
+            String php = Main.APP_DIRECTORY + "\\php\\php.exe";
             if (checkPHP(php) && checkPHPModules(php)) {
-                File composerPath = new File("C:\\Artisan\\Composer");
-                final String composer = "C:\\Artisan\\Composer\\composer.phar";
-                if (!composerPath.exists()) {
-                    composerPath.mkdirs();
+                File composerFilePath = new File(Main.APP_DIRECTORY + "\\Composer");
+                String composer = Main.APP_DIRECTORY + "\\Composer\\composer.phar";
+                if (!composerFilePath.exists()) {
+                    composerFilePath.mkdirs();
                 }
                 installLocalComposer(php);
                 if (checkComposer(php, composer)) {
@@ -613,11 +572,16 @@ public class FirstTime extends javax.swing.JFrame {
     }//GEN-LAST:event_composerPathTextKeyPressed
 
     private void yesPHPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_yesPHPButtonActionPerformed
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
         phpPathLabel.setEnabled(true);
         phpPathText.setEnabled(true);
         selectPHPButton.setEnabled(true);
-        if (checkPHP(phpPathText.getText())) {
-            checkPHPModules(phpPathText.getText());
+        if (!phpPathText.getText().equals(phpPath)) {
+            if (checkPHP(phpPathText.getText())) {
+                if (checkPHPModules(phpPathText.getText())) {
+                    phpPath = phpPathText.getText();
+                }
+            }
         }
         composerInstalledLabel.setEnabled(true);
         yesComposerButton.setEnabled(true);
@@ -625,6 +589,7 @@ public class FirstTime extends javax.swing.JFrame {
         if (yesComposerButton.isSelected()) {
             yesComposerButtonActionPerformed(evt);
         }
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }//GEN-LAST:event_yesPHPButtonActionPerformed
 
     private void noPHPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noPHPButtonActionPerformed
@@ -640,10 +605,17 @@ public class FirstTime extends javax.swing.JFrame {
     }//GEN-LAST:event_noPHPButtonActionPerformed
 
     private void yesComposerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_yesComposerButtonActionPerformed
+        setCursor(new Cursor(Cursor.WAIT_CURSOR));
         composerPathLabel.setEnabled(true);
         composerPathText.setEnabled(true);
         selectComposerButton.setEnabled(true);
-        check(phpPathText.getText(), composerPathText.getText());
+        if (!phpPathText.getText().equals(phpPath) || !composerPathText.getText().equals(composerPath)) {
+            if (check(phpPathText.getText(), composerPathText.getText())) {
+                phpPath = phpPathText.getText();
+                composerPath = composerPathText.getText();
+            }
+        }
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }//GEN-LAST:event_yesComposerButtonActionPerformed
 
     private void noComposerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noComposerButtonActionPerformed

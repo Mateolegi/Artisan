@@ -17,7 +17,9 @@
  */
 package io.github.mateolegi.Artisan.controllers;
 
+import io.github.mateolegi.Artisan.main.Main;
 import io.github.mateolegi.Artisan.util.Preferences;
+import java.awt.HeadlessException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +35,14 @@ import javax.swing.JOptionPane;
 public class CheckComponent {
 
     private static final Preferences PREFERENCES_FILE = new Preferences();
-    private static final String APP_DIRECTORY = System.getProperty("user.dir");
+    
+    public static final int PHP_SUCCESSFUL = 1;
+    public static final int PHP_UNSOPORTED_VERSION = 0;
+    public static final int PHP_NOT_FOUND = -1;
+    public static final int PHP_MODULES_SUCCESSFUL = 2;
+    public static final int PHP_MODULES_FAIL = -2;
+    public static final int COMPOSER_SUCCESSFUL = 1;
+    public static final int COMPOSER_NOT_FOUND = -1;
 
     public static String getPHPPath() {
         return PREFERENCES_FILE.getProp("configurations", "php-path");
@@ -61,47 +70,57 @@ public class CheckComponent {
             return false;
         }
     }
-
+    
     /**
      * Get PHP version executing <em>php -v</em> command.
-     * @return <code>true</code> if PHP version is greater or equals than 5.6.4, otherwise <code>false</code>
-     * @throws IOException when Artisan fail executing command
+     * @param php
+     * @return enum with result
      * @throws NumberFormatException when can't format string to numbers to check version
      */
-    public static boolean checkPHP() throws IOException, NumberFormatException {
-
-        final Process p = Runtime.getRuntime().exec(getPHPPath() + " -v");
-        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        String line = in.readLine();
-        String version = line.split(" ")[1];
-        System.out.println("PHP version: " + version);
-        String[] versionN = version.split(".");
-        for (String val : versionN) {
-            System.out.println(val);
-        }
-        if (versionPHP(versionN)) {
-            return true;
-        } else {
-            JOptionPane.showMessageDialog(null, "A version greater than 5.6.4 is required", "Update PHP", JOptionPane.ERROR_MESSAGE);
-            return false;
+    public static int checkPHP(String php) {
+        try {
+            Process p = Runtime.getRuntime().exec(php + " -v");
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = in.readLine();
+            String version = line.split(" ")[1];
+            System.out.println("PHP version: " + version);
+            String[] versionN = version.split("\\.");
+            if (versionPHP(versionN)) {
+                return PHP_SUCCESSFUL;
+//                return Integer.parseInt(version);
+            } else {
+                JOptionPane.showMessageDialog(null, "A version greater than 5.6.4 is required", "Update PHP", JOptionPane.ERROR_MESSAGE);
+                return PHP_UNSOPORTED_VERSION;
+            }
+        } catch (HeadlessException | IOException ex) {
+            System.err.println("Error: " + ex.getMessage());
+            return PHP_NOT_FOUND;
         }
     }
 
     /**
+     * Get PHP version executing <em>php -v</em> command.
+     * @return enum with result
+     * @throws NumberFormatException when can't format string to numbers to check version
+     */
+    public static int checkPHP() {
+        return checkPHP(getPHPPath());
+    }
+    
+    /**
      * Check if PHP extensions requiered to run Laravel are available.<p>
      * Execute <em>php -m</em> to see compiled extensions
-     * @return <code>true</code> if every extension requiered is available, otherwise <code></code>
+     * @param php url or command to execute php
+     * @return enum with result
      */
-    public static boolean getPHPModules() {
-
+    public static int getPHPModules(String php) {
         List<String> modules = new ArrayList<>();
         List<String> requiredModules = new ArrayList<>();
         String[] required = {"openssl", "mbstring", "PDO", "tokenizer", "xml"};
         try {
-            Process p = Runtime.getRuntime().exec(getPHPPath() + " -m");
+            Process p = Runtime.getRuntime().exec(php + " -m");
             BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
-
             while ((line = input.readLine()) != null) {
                 modules.add(line);
             }
@@ -113,48 +132,66 @@ public class CheckComponent {
             }
             String mensaje;
             if (requiredModules.isEmpty()) {
-                return true;
+                return PHP_MODULES_SUCCESSFUL;
             } else if (requiredModules.size() == 1) {
-                mensaje = "La extensión " + requiredModules.get(0) + " no se encuentra activada";
+                mensaje = "The " + requiredModules.get(0) + " extension is not enabled";
             } else {
-                mensaje = "Las extensiones ";
+                mensaje = "";
                 for (int i = 0; i < requiredModules.size(); i++) {
-                    if (i != requiredModules.size() - 1) {
-                        mensaje += requiredModules.get(i) + ", ";
-                    } else {
-                        mensaje += requiredModules.get(i);
-                    }
+                    mensaje += requiredModules.get(i);
+                    if (i != requiredModules.size() - 1) mensaje += ", ";
                 }
-                mensaje += " no se encuentran activadas";
+                mensaje += " extensions are not enabled";
             }
             JOptionPane.showMessageDialog(null, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        } catch (IOException | InterruptedException ex) {
+            return PHP_MODULES_FAIL;
+        } catch (HeadlessException | IOException | InterruptedException ex) {
             System.err.println("Error: " + ex.getMessage());
+            return PHP_NOT_FOUND;
         }
-        return false;
     }
 
     /**
-     * Get Composer version executing <em>php composer.phar -V</em> command.
-     * @return <code>true</code> if Composer version is greater than 1.0, otherwise <code>false</code>
-     * @throws IOException when Artisan fail executing command
+     * Check if PHP extensions requiered to run Laravel are available.<p>
+     * Execute <em>php -m</em> to see compiled extensions
+     * @return enum with result
      */
-    public static boolean checkComposer() throws IOException {
-        String[] composerVersion = {getPHPPath(), getComposerPath(), "-V"};
-        ProcessBuilder pb = new ProcessBuilder(composerVersion);
+    public static int getPHPModules() {
+        return getPHPModules(getPHPPath());
+    }
+    
+    /**
+     * Get Composer executing <em>php composer.phar -V</em> command.
+     * @param php url or command to execute php
+     * @param composer url or command to execute composer.phar
+     * @return enum with result
+     */
+    public static int checkComposer(String php, String composer) {
+        String[] composerVersion = {php, composer, "-V"};
+//        ProcessBuilder pb = new ProcessBuilder(composerVersion);
 //        pb.directory(new File("C:\\Artisan\\Composer"));
-        pb.directory(new File(APP_DIRECTORY + "\\Composer"));
-        Process p = pb.start();
-        BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        String version = input.readLine().split(" ")[2];
+//        pb.directory(new File(Main.APP_DIRECTORY + "\\Composer"));
         try {
-            boolean flag = Float.parseFloat(version.substring(0, 3)) > 1.0;
+//            Process p = pb.start();
+            Process p = Runtime.getRuntime().exec(composerVersion);
+            
+            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String version = input.readLine().split(" ")[2];
+            Float.parseFloat(version.substring(0, 3));
             System.out.println(version);
-            return flag;
-        } catch (NumberFormatException e) {
+            return COMPOSER_SUCCESSFUL;
+//            return Integer.parseInt(version);
+        } catch (IOException | NumberFormatException e) {
             System.out.println("Error: " + e.getMessage());
-            return false;
+            return COMPOSER_NOT_FOUND;
         }
+    }
+
+    /**
+     * Get Composer executing <em>php composer.phar -V</em> command.
+     * @return enum with result
+     */
+    public static int checkComposer() {
+        return checkComposer(getPHPPath(), getComposerPath());
     }
 }
