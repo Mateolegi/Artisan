@@ -19,8 +19,10 @@ package io.github.mateolegi.Artisan.views;
 
 import io.github.mateolegi.Artisan.controllers.CheckComponent;
 import io.github.mateolegi.Artisan.main.Main;
+import io.github.mateolegi.Artisan.util.Notification;
 import io.github.mateolegi.Artisan.util.Preferences;
 import io.github.mateolegi.Artisan.util.Terminal;
+import java.awt.AWTException;
 import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.event.KeyEvent;
@@ -28,6 +30,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
@@ -44,6 +49,7 @@ public class FirstTime extends javax.swing.JFrame {
     FileNameExtensionFilter pharFilter = new FileNameExtensionFilter("PHAR File .phar", "phar");
     String phpPath;
     String composerPath;
+    Notification notification = new Notification();
 
     public FirstTime() {
         initComponents();
@@ -115,44 +121,13 @@ public class FirstTime extends javax.swing.JFrame {
     }
 
     private void installLocalComposer(String php) {
-        if (php.contains(" ")) php = "\"" + php + "\"";
-        
-        File folder = new File(Main.APP_DIRECTORY + "\\Composer");
-        if (!folder.isDirectory()) folder.delete();
-        if (!folder.mkdir()) {
-            if (!folder.mkdirs()) {
-                System.err.println("Can't create folder");
-            }
-        }
-        checkingLabel.append("Downloading Composer...\n");
+        InstallComposerProgress dialog = new InstallComposerProgress(this, true, php);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
         try {
-            //TODO: Finish subprocess in ProcessBuilder and Composer downloader
-//            ProcessBuilder pb = new ProcessBuilder("");
-//            pb.
-            Runtime.getRuntime().exec(php + " -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"", null, folder).waitFor();
-            Process p = Runtime.getRuntime().exec(php + " -r \"if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;\"", null, folder);
-            String response = new BufferedReader(new InputStreamReader(p.getInputStream())).readLine();
-            checkingLabel.append(response + "\n");
-            if (response.equals("Installer verified")) {
-                p = Runtime.getRuntime().exec(php + " composer-setup.php", null, folder);
-                BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                while ((response = br.readLine()) != null) {
-                    checkingLabel.append(response + "\n");
-                }
-                p.waitFor();
-                p = Runtime.getRuntime().exec(php + " -r \"unlink('composer-setup.php');\"", null, folder);
-                p.waitFor();
-                p = Runtime.getRuntime().exec(php + " composer.phar global require \"laravel/installer\"", null, folder);
-                br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                while ((response = br.readLine()) != null) {
-                    checkingLabel.append(response + "\n");
-                }
-                p.waitFor();
-            } else {
-                checkingLabel.append("An error occurred downloading Composer\n");
-            }
-        } catch (IOException | InterruptedException e) {
-            System.err.println("Error: " + e.getMessage());
+            notification.displayTray("Composer installed", "INFO");
+        } catch (MalformedURLException | AWTException ex) {
+            System.err.println("Error: " + ex.getMessage());
         }
     }
 

@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import javax.swing.JTextArea;
 
 /**
@@ -60,7 +61,7 @@ public class Terminal {
                 p = Runtime.getRuntime().exec(command);
             } catch (IOException ex) {
                 System.out.println("Error: " + ex.getMessage());
-                p = Runtime.getRuntime().exec("cmd /c " + command);
+                p = Runtime.getRuntime().exec("cmd /c " + Arrays.toString(command));
             }
             InputStream output = p.getInputStream();
             BufferedReader in;
