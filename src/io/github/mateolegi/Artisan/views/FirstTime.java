@@ -21,7 +21,6 @@ import io.github.mateolegi.Artisan.controllers.CheckComponent;
 import io.github.mateolegi.Artisan.main.Main;
 import io.github.mateolegi.Artisan.util.Notification;
 import io.github.mateolegi.Artisan.util.Preferences;
-import io.github.mateolegi.Artisan.util.Terminal;
 import java.awt.AWTException;
 import java.awt.Cursor;
 import java.awt.EventQueue;
@@ -31,8 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
@@ -44,7 +41,6 @@ import javax.swing.text.DefaultCaret;
 public class FirstTime extends javax.swing.JFrame {
 
     Preferences pref = new Preferences();
-    Terminal terminal = new Terminal();
     FileNameExtensionFilter exeFilter = new FileNameExtensionFilter("Executable .exe", "exe");
     FileNameExtensionFilter pharFilter = new FileNameExtensionFilter("PHAR File .phar", "phar");
     String phpPath;
@@ -120,8 +116,8 @@ public class FirstTime extends javax.swing.JFrame {
         }
     }
 
-    private void installLocalComposer(String php) {
-        InstallComposerProgress dialog = new InstallComposerProgress(this, true, php);
+    private void installLocalComposer() {
+        InstallComposerProgress dialog = new InstallComposerProgress(this, true);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
         try {
@@ -484,7 +480,7 @@ public class FirstTime extends javax.swing.JFrame {
             } else {
                 if (checkPHP(phpPathText.getText()) && checkPHPModules(phpPathText.getText())) {
                     System.out.println("Sabe");
-                    installLocalComposer(phpPathText.getText());
+                    installLocalComposer();
                     String composerFilePath = Main.APP_DIRECTORY + "\\Composer\\composer.phar";
                     try {
                         ProcessBuilder pb = new ProcessBuilder("cmd", "/c", phpPathText.getText(), composerFilePath, "-V");
@@ -515,7 +511,7 @@ public class FirstTime extends javax.swing.JFrame {
                 if (!composerFilePath.exists()) {
                     composerFilePath.mkdirs();
                 }
-                installLocalComposer(php);
+                installLocalComposer();
                 if (checkComposer(php, composer)) {
                     pref.saveProp("configurations", "php-path", php);
                     pref.saveProp("configurations", "composer-path", composer);

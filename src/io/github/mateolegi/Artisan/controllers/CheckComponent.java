@@ -21,7 +21,6 @@ import io.github.mateolegi.Artisan.main.Main;
 import io.github.mateolegi.Artisan.util.Preferences;
 import java.awt.HeadlessException;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -33,8 +32,6 @@ import javax.swing.JOptionPane;
  * @author Mateo Leal
  */
 public class CheckComponent {
-
-    private static final Preferences PREFERENCES_FILE = new Preferences();
     
     public static final int PHP_SUCCESSFUL = 1;
     public static final int PHP_UNSOPORTED_VERSION = 0;
@@ -44,12 +41,24 @@ public class CheckComponent {
     public static final int COMPOSER_SUCCESSFUL = 1;
     public static final int COMPOSER_NOT_FOUND = -1;
 
-    public static String getPHPPath() {
-        return PREFERENCES_FILE.getProp("configurations", "php-path");
+    /**
+     * Get the PHP path in the application location
+     * @return PHP executable path
+     */
+    public static String getPHPFile() {
+        if (Main.OS == Main.OSType.WINDOWS)
+            return Main.APP_DIRECTORY + "\\php\\php.exe";
+        return Main.APP_DIRECTORY + "\\php\\php";
     }
 
-    public static String getComposerPath() {
-        return PREFERENCES_FILE.getProp("configurations", "composer-path");
+    /**
+     * Get the composer path in the application location
+     * @return composer executable path
+     */
+    public static String getComposerFile() {
+        if (Main.OS == Main.OSType.WINDOWS)
+            return Main.APP_DIRECTORY + "\\composer\\composer.bat";
+        return Main.APP_DIRECTORY + "\\composer\\composer";
     }
 
     /**
@@ -104,7 +113,7 @@ public class CheckComponent {
      * @throws NumberFormatException when can't format string to numbers to check version
      */
     public static int checkPHP() {
-        return checkPHP(getPHPPath());
+        return checkPHP(getPHPFile());
     }
     
     /**
@@ -157,7 +166,7 @@ public class CheckComponent {
      * @return enum with result
      */
     public static int getPHPModules() {
-        return getPHPModules(getPHPPath());
+        return getPHPModules(getPHPFile());
     }
     
     /**
@@ -192,6 +201,6 @@ public class CheckComponent {
      * @return enum with result
      */
     public static int checkComposer() {
-        return checkComposer(getPHPPath(), getComposerPath());
+        return checkComposer(getPHPFile(), getComposerFile());
     }
 }

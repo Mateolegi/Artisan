@@ -17,18 +17,23 @@
  */
 package io.github.mateolegi.Artisan.views;
 
+import io.github.mateolegi.Artisan.controllers.CheckComponent;
 import io.github.mateolegi.Artisan.main.Main;
+import io.github.mateolegi.Artisan.util.Hash;
 import java.beans.PropertyChangeEvent;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import javax.swing.JLabel;
 import javax.swing.JProgressBar;
-import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
-import javax.swing.text.DefaultCaret;
 
 /**
  *
@@ -44,22 +49,18 @@ public class InstallComposerProgress extends javax.swing.JDialog {
      * top-level windows when shown. If {@code true}, the modality type property
      * is set to {@code DEFAULT_MODALITY_TYPE}, otherwise the dialog is
      * modeless.
-     * @param php command to execute PHP
      */
-    public InstallComposerProgress(java.awt.Frame owner, boolean modal, String php) {
+    public InstallComposerProgress(java.awt.Frame owner, boolean modal) {
         super(owner, modal);
         this.setIconImage(new javax.swing.ImageIcon(getClass()
                 .getResource("/io/github/mateolegi/Artisan/images/Artisan.png"))
                 .getImage().getScaledInstance(48, 48, java.awt.Image.SCALE_AREA_AVERAGING));
         initComponents();
-        DefaultCaret caret = (DefaultCaret) textArea.getCaret();
-        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        javax.swing.JDialog dialog = this;
-        InstallComposer p = new InstallComposer(progressBar, textArea, php);
+        InstallComposer p = new InstallComposer(progressBar, secondLabel);
         p.addPropertyChangeListener((PropertyChangeEvent evt) -> {
             if (evt.getPropertyName().equalsIgnoreCase("state")) {
                 if (evt.getNewValue() == SwingWorker.StateValue.DONE) {
-                    dialog.dispose();
+                    this.dispose();
                 }
             }
         });
@@ -78,31 +79,19 @@ public class InstallComposerProgress extends javax.swing.JDialog {
         progressBar = new javax.swing.JProgressBar();
         firstLabel = new javax.swing.JLabel();
         secondLabel = new javax.swing.JLabel();
-        scrollPane = new javax.swing.JScrollPane();
-        textArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-        setTitle("Creating new Laravel project");
+        setTitle("Configuring Artisan");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
 
         firstLabel.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
         firstLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        firstLabel.setText("We are installing Composer, this may take a while.");
+        firstLabel.setText("Configuring Artisan, this may take a while.");
 
         secondLabel.setFont(new java.awt.Font("Fira Code", 0, 12)); // NOI18N
         secondLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         secondLabel.setText("Please, be pacient");
-
-        textArea.setEditable(false);
-        textArea.setBackground(new java.awt.Color(51, 51, 51));
-        textArea.setColumns(20);
-        textArea.setFont(new java.awt.Font("Consolas", 0, 13)); // NOI18N
-        textArea.setForeground(new java.awt.Color(240, 240, 240));
-        textArea.setRows(5);
-        textArea.setBorder(null);
-        textArea.setFocusable(false);
-        scrollPane.setViewportView(textArea);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -111,24 +100,21 @@ public class InstallComposerProgress extends javax.swing.JDialog {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(firstLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 680, Short.MAX_VALUE)
+                    .addComponent(firstLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(progressBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(secondLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(scrollPane))
+                    .addComponent(secondLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(38, 38, 38)
+                .addContainerGap()
                 .addComponent(firstLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(13, 13, 13)
                 .addComponent(secondLabel)
-                .addGap(37, 37, 37)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -136,101 +122,101 @@ public class InstallComposerProgress extends javax.swing.JDialog {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel firstLabel;
     private javax.swing.JProgressBar progressBar;
-    private javax.swing.JScrollPane scrollPane;
     private javax.swing.JLabel secondLabel;
-    private javax.swing.JTextArea textArea;
     // End of variables declaration//GEN-END:variables
 }
 
 class InstallComposer extends SwingWorker<Integer, String> {
 
     private final JProgressBar progressBar;
-    private final JTextArea textArea;
-    private String php;
+    private final JLabel label;
 
-    public InstallComposer(JProgressBar progressBar, JTextArea textArea, String php) {
+    public InstallComposer(JProgressBar progressBar, JLabel label) {
         this.progressBar = progressBar;
-        this.textArea = textArea;
-        this.php = php;
+        this.label = label;
     }
 
     @Override
     protected Integer doInBackground() throws Exception {
         progressBar.setIndeterminate(true);
+        String php = CheckComponent.getPHPFile();
         if (php.contains(" ")) {
             php = "\"" + php + "\"";
         }
-
-        File folder = new File(Main.APP_DIRECTORY + "\\Composer");
-        if (!folder.isDirectory()) {
-            folder.delete();
-        }
-        if (!folder.mkdir()) {
-            if (!folder.mkdirs()) {
-                System.err.println("Can't create folder");
-            }
-        }
-        textArea.append("Downloading Composer installer, please wait...\n");
-        String script
-                = "@echo off\n"
-                + "set COMPOSER_HOME=Home\n"
-                + "if not exist %COMPOSER_HOME% md \"%COMPOSER_HOME%\"\n"
-                + "echo Downloading Composer installer, please wait...\n"
-                + php + " -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"\n"
-                + "echo Checking download\n"
-                + php + " -r \"if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;\"\n"
-                + php + " composer-setup.php\n"
-                + php + " -r \"unlink('composer-setup.php');\"\n"
-                + "call " + php + " composer.phar --version | findstr /i /r /c:\"Composer......version\"\n"
-                + "call " + php + " composer.phar --quiet config --global process-timeout 3000\n"
-                + "set COMPOSER_LOCAL=Local\n"
-                + "if not exist %COMPOSER_LOCAL% md \"%COMPOSER_LOCAL%\"\n"
-                + "call composer --quiet config --global cache-dir \"%COMPOSER_LOCAL%\"\n"
-                + "set COMPOSER_BAT=composer.bat\n"
-                + "if not exist \"%COMPOSER_BAT\" (\n"
-                + "	echo @ECHO OFF> \"%COMPOSER_BAT%\"\n"
-                + "	echo SET COMPOSER_HOME=%%Home>> \"%COMPOSER_BAT%\"\n"
-                + "	echo if not exist %%COMPOSER_HOME%% md \"%%COMPOSER_HOME%%\">> \"%COMPOSER_BAT%\"\n"
-                + "	echo " + php + " \"%%~dp0composer.phar\" %%*>> \"%COMPOSER_BAT%\"\n"
-                + "	echo EXIT /B %%ERRORLEVEL%%>> \"%COMPOSER_BAT%\"\n"
-                + ")\n"
-                + "exit";
-        BufferedWriter bw = null;
-        try {
-            bw = new BufferedWriter(new FileWriter(new File(Main.APP_DIRECTORY + "\\Composer\\installcomposer.bat")));
-            bw.write(script);
-        } catch (IOException e) {
-            System.err.println("Error: " + e.getMessage());
-            if (textArea != null) {
-                textArea.append("Error: " + e.getMessage() + "\n");
-            }
-        } finally {
-            try {
-                if (bw != null) {
-                    bw.close();
+        label.setText("Checking PHP");
+        if (CheckComponent.checkPHP() == CheckComponent.PHP_SUCCESSFUL) {
+            label.setText("Checking PHP modules");
+            if (CheckComponent.getPHPModules() == CheckComponent.PHP_MODULES_SUCCESSFUL) {
+                File composerDirectory = new File(Main.APP_DIRECTORY + "\\composer");
+                if (!composerDirectory.isDirectory()) {
+                    composerDirectory.delete();
                 }
-            } catch (IOException e) {
-                System.err.println("Error: " + e.getMessage());
-                if (textArea != null) {
-                    textArea.append("Error: " + e.getMessage() + "\n");
+                if (!composerDirectory.mkdir()) {
+                    if (!composerDirectory.mkdirs()) {
+                        System.err.println("Can't create folder");
+                    }
                 }
-            }
-        }
-        textArea.append("Installing Laravel...\n");
-        try {
-            Process p = Runtime.getRuntime().exec("cmd.exe /c start " + Main.APP_DIRECTORY + "\\Composer\\installcomposer.bat", null, folder);
-            p.waitFor();
-            Thread.sleep(30000);
-            p = Runtime.getRuntime().exec("composer.bat global require \"laravel/installer\"", null, folder);
-            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String reading;
-            while ((reading = in.readLine()) != null) {
-                textArea.append(reading + "\n");
-            }
-        } catch (InterruptedException | IOException e) {
-            System.err.println("Error: " + e.getMessage());
-            if (textArea != null) {
-                textArea.append("Error: " + e.getMessage() + "\n");
+                label.setText("Generating Composer installer batch file");
+//                try (ReadableByteChannel in = Channels.newChannel(new URL("https://composer.github.io/installer.sig").openStream());
+//                        FileChannel out = new FileOutputStream(Main.APP_DIRECTORY + "\\composer\\installer.sig").getChannel()) {
+//                    out.transferFrom(in, 0, Long.MAX_VALUE);
+                    File signature = new File(new URL("https://composer.github.io/installer.sig").toURI());
+                    Process downloadInstallerProcess = Runtime.getRuntime().exec("php -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"", null, composerDirectory);
+                    downloadInstallerProcess.waitFor();
+                    File installer = new File(composerDirectory.getAbsoluteFile() + "\\composer-setup.php");
+                    String expectedHash = Hash.getHash(installer);
+                    
+                    
+//                }
+                String script
+                        = "@echo off\n"
+                        + "set COMPOSER_HOME=Home\n"
+                        + "if not exist %COMPOSER_HOME% md \"%COMPOSER_HOME%\"\n"
+                        + "echo Downloading Composer installer, please wait...\n"
+                        + php + " -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"\n"
+                        + "echo Checking download\n"
+                        + php + " -r \"if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;\"\n"
+                        + php + " composer-setup.php\n"
+                        + php + " -r \"unlink('composer-setup.php');\"\n"
+                        + "call " + php + " composer.phar --version | findstr /i /r /c:\"Composer......version\"\n"
+                        + "call " + php + " composer.phar --quiet config --global process-timeout 3000\n"
+                        + "set COMPOSER_LOCAL=Local\n"
+                        + "if not exist %COMPOSER_LOCAL% md \"%COMPOSER_LOCAL%\"\n"
+                        + "call composer --quiet config --global cache-dir \"%COMPOSER_LOCAL%\"\n"
+                        + "set COMPOSER_BAT=composer.bat\n"
+                        + "if not exist \"%COMPOSER_BAT\" (\n"
+                        + "	echo @ECHO OFF> \"%COMPOSER_BAT%\"\n"
+                        + "	echo SET COMPOSER_HOME=%%Home>> \"%COMPOSER_BAT%\"\n"
+                        + "	echo if not exist %%COMPOSER_HOME%% md \"%%COMPOSER_HOME%%\">> \"%COMPOSER_BAT%\"\n"
+                        + "	echo " + php + " \"%%~dp0composer.phar\" %%*>> \"%COMPOSER_BAT%\"\n"
+                        + "	echo EXIT /B %%ERRORLEVEL%%>> \"%COMPOSER_BAT%\"\n"
+                        + ")\n"
+                        + "exit";
+                BufferedWriter bw = null;
+                try {
+                    bw = new BufferedWriter(new FileWriter(new File(Main.APP_DIRECTORY + "\\Composer\\installcomposer.bat")));
+                    bw.write(script);
+                } catch (IOException e) {
+                    System.err.println("Error: " + e.getMessage());
+                } finally {
+                    try {
+                        if (bw != null) {
+                            bw.close();
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Error: " + e.getMessage());
+                    }
+                }
+                label.setText("Installing Composer");
+                try {
+                    Process p = Runtime.getRuntime().exec("cmd.exe /c start " + Main.APP_DIRECTORY + "\\Composer\\installcomposer.bat", null, composerDirectory);
+                    p.waitFor();
+                    Thread.sleep(60000);
+                    label.setText("Intalling Laravel");
+                    p = Runtime.getRuntime().exec("composer.bat global require \"laravel/installer\"", null, composerDirectory);
+                } catch (InterruptedException | IOException e) {
+                    System.err.println("Error: " + e.getMessage());
+                }
             }
         }
         progressBar.setIndeterminate(false);
