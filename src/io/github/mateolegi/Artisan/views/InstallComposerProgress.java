@@ -21,17 +21,21 @@ import io.github.mateolegi.Artisan.controllers.CheckComponent;
 import io.github.mateolegi.Artisan.main.Main;
 import io.github.mateolegi.Artisan.util.Hash;
 import java.beans.PropertyChangeEvent;
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
@@ -61,6 +65,7 @@ public class InstallComposerProgress extends javax.swing.JDialog {
             if (evt.getPropertyName().equalsIgnoreCase("state")) {
                 if (evt.getNewValue() == SwingWorker.StateValue.DONE) {
                     this.dispose();
+                    System.exit(0);
                 }
             }
         });
@@ -130,16 +135,36 @@ class InstallComposer extends SwingWorker<Integer, String> {
 
     private final JProgressBar progressBar;
     private final JLabel label;
+    private final String[] envp = {"COMPOSER_HOME=Home", "COMPOSER_BAT=composer.bat", "COMPOSER_LOCAL=Local"};
+    private String php;
+    private File composerDirectory;
 
     public InstallComposer(JProgressBar progressBar, JLabel label) {
         this.progressBar = progressBar;
         this.label = label;
     }
 
+    private void installLaravel() {
+        try {
+            Process laravelInstall = Runtime.getRuntime().exec("cmd /c " + php + " composer.phar global require \"laravel/installer\"", envp, composerDirectory);
+            laravelInstall.waitFor();
+            BufferedReader bric = new BufferedReader(new InputStreamReader(laravelInstall.getInputStream()));
+            String result;
+            while ((result = bric.readLine()) != null) {
+                System.out.println(result);
+            }
+//            label.setText("Proyecto de prueba");
+//            Process laravel = Runtime.getRuntime().exec("laravel new test", envp, composerDirectory);
+//            laravel.waitFor();
+        } catch (IOException | InterruptedException ex) {
+            Logger.getLogger(InstallComposer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     @Override
-    protected Integer doInBackground() throws Exception {
+    protected Integer doInBackground() {
         progressBar.setIndeterminate(true);
-        String php = CheckComponent.getPHPFile();
+        php = CheckComponent.getPHPFile();
         if (php.contains(" ")) {
             php = "\"" + php + "\"";
         }
@@ -147,75 +172,64 @@ class InstallComposer extends SwingWorker<Integer, String> {
         if (CheckComponent.checkPHP() == CheckComponent.PHP_SUCCESSFUL) {
             label.setText("Checking PHP modules");
             if (CheckComponent.getPHPModules() == CheckComponent.PHP_MODULES_SUCCESSFUL) {
-                File composerDirectory = new File(Main.APP_DIRECTORY + "\\composer");
-                if (!composerDirectory.isDirectory()) {
-                    composerDirectory.delete();
-                }
-                if (!composerDirectory.mkdir()) {
-                    if (!composerDirectory.mkdirs()) {
-                        System.err.println("Can't create folder");
+                try {
+                    composerDirectory = new File(Main.APP_DIRECTORY + "\\composer");
+                    if (!composerDirectory.isDirectory()) {
+                        composerDirectory.delete();
                     }
-                }
-                label.setText("Generating Composer installer batch file");
-//                try (ReadableByteChannel in = Channels.newChannel(new URL("https://composer.github.io/installer.sig").openStream());
-//                        FileChannel out = new FileOutputStream(Main.APP_DIRECTORY + "\\composer\\installer.sig").getChannel()) {
-//                    out.transferFrom(in, 0, Long.MAX_VALUE);
-                    File signature = new File(new URL("https://composer.github.io/installer.sig").toURI());
-                    Process downloadInstallerProcess = Runtime.getRuntime().exec("php -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"", null, composerDirectory);
+                    if (!composerDirectory.mkdir()) {
+                        if (!composerDirectory.mkdirs()) {
+                            System.err.println("Can't create folder");
+                        }
+                    }
+                    label.setText("Downloading Composer installer signature");
+                    ReadableByteChannel in = Channels.newChannel(new URL("https://composer.github.io/installer.sig").openStream());
+                    FileChannel out = new FileOutputStream(Main.APP_DIRECTORY + "\\composer\\installer.sig").getChannel();
+                    out.transferFrom(in, 0, Long.MAX_VALUE);
+                    File signature = new File(Main.APP_DIRECTORY + "\\composer\\installer.sig");
+                    BufferedReader br = new BufferedReader(new FileReader(signature));
+                    String expectedHash = br.readLine();
+                    label.setText("Downloading Composer installer");
+                    Process downloadInstallerProcess = Runtime.getRuntime().exec(php + " -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"", envp, composerDirectory);
                     downloadInstallerProcess.waitFor();
                     File installer = new File(composerDirectory.getAbsoluteFile() + "\\composer-setup.php");
-                    String expectedHash = Hash.getHash(installer);
-                    
-                    
-//                }
-                String script
-                        = "@echo off\n"
-                        + "set COMPOSER_HOME=Home\n"
-                        + "if not exist %COMPOSER_HOME% md \"%COMPOSER_HOME%\"\n"
-                        + "echo Downloading Composer installer, please wait...\n"
-                        + php + " -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"\n"
-                        + "echo Checking download\n"
-                        + php + " -r \"if (hash_file('SHA384', 'composer-setup.php') === '669656bab3166a7aff8a7506b8cb2d1c292f042046c5a994c43155c0be6190fa0355160742ab2e1c88d40d5be660b410') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;\"\n"
-                        + php + " composer-setup.php\n"
-                        + php + " -r \"unlink('composer-setup.php');\"\n"
-                        + "call " + php + " composer.phar --version | findstr /i /r /c:\"Composer......version\"\n"
-                        + "call " + php + " composer.phar --quiet config --global process-timeout 3000\n"
-                        + "set COMPOSER_LOCAL=Local\n"
-                        + "if not exist %COMPOSER_LOCAL% md \"%COMPOSER_LOCAL%\"\n"
-                        + "call composer --quiet config --global cache-dir \"%COMPOSER_LOCAL%\"\n"
-                        + "set COMPOSER_BAT=composer.bat\n"
-                        + "if not exist \"%COMPOSER_BAT\" (\n"
-                        + "	echo @ECHO OFF> \"%COMPOSER_BAT%\"\n"
-                        + "	echo SET COMPOSER_HOME=%%Home>> \"%COMPOSER_BAT%\"\n"
-                        + "	echo if not exist %%COMPOSER_HOME%% md \"%%COMPOSER_HOME%%\">> \"%COMPOSER_BAT%\"\n"
-                        + "	echo " + php + " \"%%~dp0composer.phar\" %%*>> \"%COMPOSER_BAT%\"\n"
-                        + "	echo EXIT /B %%ERRORLEVEL%%>> \"%COMPOSER_BAT%\"\n"
-                        + ")\n"
-                        + "exit";
-                BufferedWriter bw = null;
-                try {
-                    bw = new BufferedWriter(new FileWriter(new File(Main.APP_DIRECTORY + "\\Composer\\installcomposer.bat")));
-                    bw.write(script);
-                } catch (IOException e) {
-                    System.err.println("Error: " + e.getMessage());
-                } finally {
-                    try {
-                        if (bw != null) {
-                            bw.close();
+                    String obtainedHash = Hash.getHash(installer);
+                    label.setText("Checking checksum");
+                    if (expectedHash.equalsIgnoreCase(obtainedHash)) {
+                        label.setText("Installing Composer");
+                        Process installComposer = Runtime.getRuntime().exec(php + " composer-setup.php --quiet", envp, composerDirectory);
+                        String result;
+                        installComposer.waitFor();
+                        installComposer = Runtime.getRuntime().exec(php + " composer.phar --version", envp, composerDirectory);
+                        BufferedReader bric = new BufferedReader(new InputStreamReader(installComposer.getInputStream()));
+                        while ((result = bric.readLine()) != null) {
+                            label.setText(result);
                         }
-                    } catch (IOException e) {
-                        System.err.println("Error: " + e.getMessage());
+                        installComposer = Runtime.getRuntime().exec(php + " composer.phar --quiet config --global process-timeout 3000", envp, composerDirectory);
+                        installComposer.waitFor();
+                        if (new File(composerDirectory.getAbsoluteFile() + "\\Local").mkdir()) {
+                            installComposer = Runtime.getRuntime().exec(php + " composer.phar --quiet config --global cache-dir \"Local\"", envp, composerDirectory);
+                            installComposer.waitFor();
+                        }
+                        Thread.sleep(500);
+                        label.setText("Deleting signature");
+                        if (!signature.delete()) {
+                            Runtime.getRuntime().exec("cmd /c del installer.sig", null, composerDirectory);
+                        }
+                        Thread.sleep(500);
+                        label.setText("Deleting installer");
+                        if (!installer.delete()) {
+                            Runtime.getRuntime().exec("cmd /c del composer-setup.php", null, composerDirectory);
+                        }
+                        label.setText("Installing Laravel");
+                        installLaravel();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "An error ocurred downloading Composer installer", "Error", JOptionPane.ERROR_MESSAGE);
                     }
-                }
-                label.setText("Installing Composer");
-                try {
-                    Process p = Runtime.getRuntime().exec("cmd.exe /c start " + Main.APP_DIRECTORY + "\\Composer\\installcomposer.bat", null, composerDirectory);
-                    p.waitFor();
-                    Thread.sleep(60000);
-                    label.setText("Intalling Laravel");
-                    p = Runtime.getRuntime().exec("composer.bat global require \"laravel/installer\"", null, composerDirectory);
-                } catch (InterruptedException | IOException e) {
-                    System.err.println("Error: " + e.getMessage());
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(InstallComposer.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException | InterruptedException ex) {
+                    Logger.getLogger(InstallComposer.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
